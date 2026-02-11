@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "seed": "node utils/seedProducts.js",
+    "start": "node server.js"
+  }
+}

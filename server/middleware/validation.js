@@ -1,9 +1,6 @@
 const { body, validationResult } = require('express-validator');
 
-/**
- * Validation middleware
- * Checks for validation errors and returns them
- */
+// Validation middleware
 exports.validate = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -18,10 +15,59 @@ exports.validate = (req, res, next) => {
     next();
 };
 
-/**
- * User Registration Validation Rules
- */
-exports.registerValidation = [
+// Send OTP validation
+exports.sendOTPValidation = [
+    body('name')
+        .trim()
+        .notEmpty().withMessage('Name is required')
+        .isLength({ min: 2, max: 50 }).withMessage('Name must be between 2-50 characters'),
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Please enter a valid email')
+        .normalizeEmail()
+];
+
+// Verify OTP validation
+exports.verifyOTPValidation = [
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Please enter a valid email')
+        .normalizeEmail(),
+    body('otp')
+        .trim()
+        .notEmpty().withMessage('OTP is required')
+        .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
+        .isNumeric().withMessage('OTP must contain only numbers'),
+    body('password')
+        .notEmpty().withMessage('Password is required')
+        .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number')
+];
+
+// Resend OTP validation
+exports.resendOTPValidation = [
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Please enter a valid email')
+        .normalizeEmail()
+];
+
+// Login validation
+exports.loginValidation = [
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Please enter a valid email')
+        .normalizeEmail(),
+    body('password')
+        .notEmpty().withMessage('Password is required')
+];
+
+// Create admin validation
+exports.createAdminValidation = [
     body('name')
         .trim()
         .notEmpty().withMessage('Name is required')
@@ -33,25 +79,12 @@ exports.registerValidation = [
         .normalizeEmail(),
     body('password')
         .notEmpty().withMessage('Password is required')
-        .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+        .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('secretKey')
+        .notEmpty().withMessage('Secret key is required')
 ];
 
-/**
- * Login Validation Rules
- */
-exports.loginValidation = [
-    body('email')
-        .trim()
-        .notEmpty().withMessage('Email is required')
-        .isEmail().withMessage('Please enter a valid email')
-        .normalizeEmail(),
-    body('password')
-        .notEmpty().withMessage('Password is required')
-];
-
-/**
- * Product Validation Rules
- */
+// Product validation
 exports.productValidation = [
     body('name')
         .trim()

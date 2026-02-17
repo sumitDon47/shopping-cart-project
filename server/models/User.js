@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-/**
- * User Schema
- * Defines the structure of user documents in MongoDB
- */
 const userSchema = new mongoose.Schema({
     // Basic Information
     name: {
@@ -16,7 +12,7 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, 'Please add an email'],
-        unique: true, // No duplicate emails
+        unique: true,
         lowercase: true,
         match: [
             /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
@@ -25,16 +21,35 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Please add a password'],
         minlength: [6, 'Password must be at least 6 characters'],
-        select: false // Don't return password by default in queries
+        select: false
     },
     
     // User Role
     role: {
         type: String,
-        enum: ['user', 'admin'], // Only these values allowed
+        enum: ['user', 'admin'],
         default: 'user'
+    },
+    
+    // Email Verification
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationOTP: {
+        type: String,
+        select: false
+    },
+    emailVerificationOTPExpire: {
+        type: Date,
+        select: false
+    },
+    
+    // Registration Status
+    isRegistrationComplete: {
+        type: Boolean,
+        default: false
     },
     
     // Contact Information
@@ -65,36 +80,43 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken: String,
     resetPasswordExpire: Date
 }, {
-    timestamps: true // Automatically adds createdAt and updatedAt
+    timestamps: true
 });
 
-/**
- * Middleware: Encrypt password before saving
- * This runs automatically before a user document is saved
- */
+// Encrypt password before saving
 userSchema.pre('save', async function(next) {
-    // Only hash the password if it has been modified (or is new)
+    // Only hash password if it has been modified
     if (!this.isModified('password')) {
         next();
     }
     
-    // Generate salt (random data for hashing)
+    // Generate salt and hash password
     const salt = await bcrypt.genSalt(10);
-    
-    // Hash the password with the salt
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-/**
- * Method: Check if entered password matches hashed password
- * @param {string} enteredPassword - Plain text password from user
- * @returns {boolean} True if passwords match
- */
+// Method to check if password matches
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Create and export the model
+// Method to generate OTP
+userSchema.methods.generateEmailOTP = function() {
+    // Generate 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Hash OTP before saving
+    this.emailVerificationOTP = require('crypto')
+        .createHash('sha256')
+        .update(otp)
+        .digest('hex');
+    
+    // Set expire time (10 minutes)
+    this.emailVerificationOTPExpire = Date.now() + 10 * 60 * 1000;
+    
+    return otp;
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;

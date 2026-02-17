@@ -1,11 +1,18 @@
 const mongoose = require('mongoose');
 
+/**
+ * Order Schema
+ * Stores completed purchases
+ */
 const orderSchema = new mongoose.Schema({
+    // Customer
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
+    
+    // Order Items
     orderItems: [
         {
             product: {
@@ -29,6 +36,8 @@ const orderSchema = new mongoose.Schema({
             }
         }
     ],
+    
+    // Shipping Information
     shippingAddress: {
         address: {
             type: String,
@@ -47,6 +56,8 @@ const orderSchema = new mongoose.Schema({
             required: true
         }
     },
+    
+    // Payment Information
     paymentMethod: {
         type: String,
         required: true,
@@ -59,6 +70,8 @@ const orderSchema = new mongoose.Schema({
         update_time: String,
         email_address: String
     },
+    
+    // Pricing
     itemsPrice: {
         type: Number,
         required: true,
@@ -79,6 +92,8 @@ const orderSchema = new mongoose.Schema({
         required: true,
         default: 0.0
     },
+    
+    // Payment Status
     isPaid: {
         type: Boolean,
         required: true,
@@ -87,6 +102,8 @@ const orderSchema = new mongoose.Schema({
     paidAt: {
         type: Date
     },
+    
+    // Delivery Status
     isDelivered: {
         type: Boolean,
         required: true,
@@ -95,6 +112,8 @@ const orderSchema = new mongoose.Schema({
     deliveredAt: {
         type: Date
     },
+    
+    // Order Status
     orderStatus: {
         type: String,
         enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],

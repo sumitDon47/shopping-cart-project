@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 
+/**
+ * Cart Schema
+ * Each user has one cart
+ */
 const cartSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,7 +24,7 @@ const cartSchema = new mongoose.Schema({
             quantity: {
                 type: Number,
                 required: true,
-                min: [1, 'Quantity cannot be less than 1'],
+                min: [1, 'Quantity must be at least 1'],
                 default: 1
             }
         }
@@ -37,9 +41,12 @@ const cartSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Calculate totals before saving
+/**
+ * Middleware: Calculate totals before saving
+ * This automatically updates totalItems and totalPrice
+ */
 cartSchema.pre('save', function(next) {
-    // Calculate total items
+    // Calculate total number of items
     this.totalItems = this.items.reduce((total, item) => {
         return total + item.quantity;
     }, 0);

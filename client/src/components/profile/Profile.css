@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── Shared card base ────────────────────────────────────── */
+.pv-card, .pe-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.pv-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.pv-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem; font-weight: 800;
+  color: white; letter-spacing: -0.03em;
+  margin-bottom: 0.25rem;
+}
+.pv-subtitle { font-size: 0.875rem; color: #71717a; margin: 0; }
+
+.pv-edit-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: rgba(124,58,237,0.15);
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: 10px;
+  color: #a78bfa;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.pv-edit-btn:hover { background: rgba(124,58,237,0.25); color: #c4b5fd; }
+
+/* ── Verification banner ─────────────────────────────────── */
+.pv-banner {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin: 1.5rem 2rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.875rem; font-weight: 500;
+}
+.pv-banner.verified   { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #34d399; }
+.pv-banner.unverified { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); color: #fbbf24; }
+
+/* ── Section ─────────────────────────────────────────────── */
+.pv-section { padding: 1.5rem 2rem; }
+.pv-section-title { font-family: 'Syne', sans-serif; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #52525b; margin-bottom: 1.25rem; }
+
+.pv-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0 2rem; }
+
+/* ── Fields (view) ───────────────────────────────────────── */
+.pv-fields { display: flex; flex-direction: column; gap: 1.125rem; }
+.pv-field { display: flex; align-items: flex-start; gap: 1rem; }
+.pv-field-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; color: #71717a; flex-shrink: 0; margin-top: 0.125rem; }
+.pv-field-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #52525b; margin-bottom: 0.25rem; }
+.pv-field-value { font-size: 0.9375rem; color: #e4e4e7; margin: 0; }
+.pv-field-empty { color: #3f3f46; font-style: italic; }
+
+/* ── Meta ────────────────────────────────────────────────── */
+.pv-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1.5rem 2rem; }
+.pv-meta-item { display: flex; flex-direction: column; gap: 0.375rem; }
+.pv-meta-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #52525b; }
+.pv-meta-value { font-size: 0.9375rem; color: #a1a1aa; }
+.pv-meta-badge { display: inline-block; padding: 0.2rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.pv-meta-badge.user  { background: rgba(16,185,129,0.15); color: #34d399; }
+.pv-meta-badge.admin { background: rgba(124,58,237,0.2);  color: #a78bfa; }
+
+/* ── Edit form ───────────────────────────────────────────── */
+.pe-section { padding: 1.5rem 2rem; }
+
+.pe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.cp-grid  { grid-template-columns: 1fr; }
+
+.pe-field { display: flex; flex-direction: column; gap: 0.5rem; }
+.pe-field.has-error .pe-input { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+
+.pe-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #71717a; }
+
+.pe-input-wrap { position: relative; display: flex; align-items: center; }
+.pe-icon { position: absolute; left: 0.875rem; color: #52525b; font-size: 0.9375rem; pointer-events: none; }
+
+.pe-input {
+  width: 100%;
+  padding: 0.875rem 0.875rem 0.875rem 2.625rem;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: #e4e4e7;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9375rem;
+  outline: none;
+  transition: all 0.2s;
+}
+.pe-input::placeholder { color: #3f3f46; }
+.pe-input:focus { border-color: #7c3aed; background: rgba(124,58,237,0.06); box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+
+.pe-toggle { position: absolute; right: 0.875rem; background: none; border: none; color: #52525b; cursor: pointer; display: flex; padding: 0.25rem; transition: color 0.2s; }
+.pe-toggle:hover { color: #a1a1aa; }
+
+.pe-error { display: flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; color: #ef4444; }
+
+/* ── Actions ─────────────────────────────────────────────── */
+.pe-actions { display: flex; justify-content: flex-end; gap: 0.875rem; padding: 1.5rem 2rem; border-top: 1px solid rgba(255,255,255,0.06); }
+
+.pe-cancel-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: #71717a;
+  font-family: 'DM Sans', sans-serif; font-size: 0.9375rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.pe-cancel-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: #a1a1aa; }
+.pe-cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pe-save-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  border: none; border-radius: 10px;
+  color: white;
+  font-family: 'Syne', sans-serif; font-size: 0.9375rem; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+  transition: all 0.25s;
+}
+.pe-save-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,0.5); }
+.pe-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.pe-loader { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: pe-spin 0.7s linear infinite; display: inline-block; }
+@keyframes pe-spin { to { transform: rotate(360deg); } }
+
+/* ── Password ────────────────────────────────────────────── */
+.cp-shield-icon { width: 48px; height: 48px; background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: #f472b6; flex-shrink: 0; }
+
+.cp-strength { display: flex; align-items: center; gap: 0.875rem; }
+.cp-bars { display: flex; gap: 4px; flex: 1; }
+.cp-bar { flex: 1; height: 4px; border-radius: 2px; transition: background 0.4s; }
+.cp-label { font-size: 0.75rem; font-weight: 600; min-width: 72px; text-align: right; transition: color 0.3s; }
+
+.cp-requirements { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 1rem 1.25rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+.cp-req { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #52525b; transition: color 0.3s; }
+.cp-req svg { font-size: 0.875rem; color: #52525b; transition: color 0.3s; }
+.cp-req.met { color: #10b981; }
+.cp-req.met svg { color: #10b981; }
+
+/* ── Animation ───────────────────────────────────────────── */
+.fade-in-up { animation: profile-fade 0.4s cubic-bezier(0.4,0,0.2,1) both; }
+@keyframes profile-fade { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pv-header, .pv-section, .pe-section, .pe-actions { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .pv-banner { margin-left: 1.25rem; margin-right: 1.25rem; }
+  .pv-divider { margin-left: 1.25rem; margin-right: 1.25rem; }
+  .pe-grid { grid-template-columns: 1fr; }
+  .cp-requirements { grid-template-columns: 1fr; }
+  .pe-actions { flex-direction: column; }
+  .pe-save-btn, .pe-cancel-btn { width: 100%; justify-content: center; }
+}

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { clearCart } from '../../redux/slices/cartSlice';
-import { orderAPI } from '../../services/api';
+import { orderAPI, paymentAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
@@ -18,6 +18,13 @@ const CheckoutPage = () => {
   const { items, totalPrice, totalItems } = useSelector((s) => s.cart);
   const { user } = useSelector((s) => s.auth);
   const [placing, setPlacing] = useState(false);
+
+  // Admin cannot checkout — redirect to admin dashboard
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const [form, setForm] = useState({
     street: user?.address?.street || '',
@@ -46,6 +53,21 @@ const CheckoutPage = () => {
         paymentMethod: form.paymentMethod,
       });
       dispatch(clearCart());
+
+      // For Khalti payment, initiate payment and redirect
+      if (form.paymentMethod === 'khalti') {
+        try {
+          const payRes = await paymentAPI.khaltiInitiate({ orderId: res.data._id });
+          toast.success('Redirecting to Khalti...');
+          window.location.href = payRes.data.payment_url;
+          return;
+        } catch (payErr) {
+          toast.error('Failed to initiate Khalti payment. You can pay later from order details.');
+          navigate(`/orders/${res.data._id}`);
+          return;
+        }
+      }
+
       toast.success('Order placed successfully!');
       navigate(`/orders/${res.data._id}`);
     } catch (err) {
@@ -101,13 +123,16 @@ const CheckoutPage = () => {
 
               <div className="co-card">
                 <h2><FiCreditCard /> Payment Method</h2>
-                {['cod', 'card', 'upi'].map((pm) => (
-                  <label key={pm} className={`co-payment-opt ${form.paymentMethod === pm ? 'active' : ''}`}>
-                    <input type="radio" name="paymentMethod" value={pm} checked={form.paymentMethod === pm} onChange={handleChange} />
-                    <span className="co-radio-circle">{form.paymentMethod === pm && <FiCheck />}</span>
-                    <span className="co-pm-text">
-                      {pm === 'cod' ? 'Cash on Delivery' : pm === 'card' ? 'Credit / Debit Card' : 'UPI'}
-                    </span>
+                {[
+                  { value: 'cod', label: 'Cash on Delivery' },
+                  { value: 'khalti', label: 'Khalti (Online Payment)' },
+                  { value: 'card', label: 'Credit / Debit Card' },
+                  { value: 'upi', label: 'UPI' },
+                ].map((pm) => (
+                  <label key={pm.value} className={`co-payment-opt ${form.paymentMethod === pm.value ? 'active' : ''}`}>
+                    <input type="radio" name="paymentMethod" value={pm.value} checked={form.paymentMethod === pm.value} onChange={handleChange} />
+                    <span className="co-radio-circle">{form.paymentMethod === pm.value && <FiCheck />}</span>
+                    <span className="co-pm-text">{pm.label}</span>
                   </label>
                 ))}
               </div>
@@ -136,7 +161,7 @@ const CheckoutPage = () => {
               <div className="co-sum-row total"><span>Total</span><span>${orderTotal.toFixed(2)}</span></div>
 
               <button className="co-place-btn" type="submit" disabled={placing}>
-                {placing ? <span className="btn-spinner" /> : <><FiTruck /> Place Order</>}
+                {placing ? <span className="btn-spinner" /> : <><FiTruck /> {form.paymentMethod === 'khalti' ? 'Pay with Khalti' : 'Place Order'}</>}
               </button>
             </div>
           </form>

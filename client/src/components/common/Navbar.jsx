@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slices/authSlice';
+import { clearCart } from '../../redux/slices/cartSlice';
 import { ROUTES } from '../../utils/constants';
 import {
   FiShoppingBag, FiUser, FiShoppingCart, FiLogOut,
@@ -48,16 +49,19 @@ const Navbar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(clearCart());
     toast.success('Logged out successfully');
     navigate(ROUTES.LOGIN);
   };
 
   const isActive = (path) => location.pathname === path;
 
+  const isAdmin = isAuthenticated && user?.role === 'admin';
+
   const navLinks = [
-    { label: 'Home',     path: ROUTES.HOME },
-    { label: 'Products', path: ROUTES.PRODUCTS },
-    ...(isAuthenticated ? [{ label: 'Orders', path: ROUTES.ORDERS }] : []),
+    ...(!isAdmin ? [{ label: 'Home', path: ROUTES.HOME }] : []),
+    ...(!isAdmin ? [{ label: 'Products', path: ROUTES.PRODUCTS }] : []),
+    ...(!isAdmin ? (isAuthenticated ? [{ label: 'Orders', path: ROUTES.ORDERS }] : []) : []),
   ];
 
   return (
@@ -83,24 +87,16 @@ const Navbar = () => {
 
         {/* ── Desktop Actions ─────────────────────────── */}
         <div className="navbar-actions">
-          {/* Theme Toggle */}
-          <button
-            className="navbar-theme-toggle"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-          >
-            <span className={`theme-icon-wrap ${isDark ? 'dark' : 'light'}`}>
-              {isDark ? <FiMoon /> : <FiSun />}
-            </span>
-          </button>
 
           {isAuthenticated ? (
             <>
-              {/* Cart */}
-              <Link to={ROUTES.CART} className="navbar-icon-btn" aria-label="Cart">
-                <FiShoppingCart />
-                {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
-              </Link>
+              {/* Cart — hidden for admin */}
+              {user?.role !== 'admin' && (
+                <Link to={ROUTES.CART} className="navbar-icon-btn" aria-label="Cart">
+                  <FiShoppingCart />
+                  {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
+                </Link>
+              )}
 
               {/* User Dropdown */}
               <div className="navbar-dropdown" ref={dropdownRef}>
@@ -127,9 +123,11 @@ const Navbar = () => {
                       <Link to={ROUTES.PROFILE} className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
                         <FiUser /> My Profile
                       </Link>
-                      <Link to={ROUTES.ORDERS} className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                        <FiPackage /> My Orders
-                      </Link>
+                      {user?.role !== 'admin' && (
+                        <Link to={ROUTES.ORDERS} className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                          <FiPackage /> My Orders
+                        </Link>
+                      )}
                       {user?.role === 'admin' && (
                         <>
                           <Link to={ROUTES.ADMIN_DASHBOARD} className="navbar-dropdown-item admin" onClick={() => setDropdownOpen(false)}>
@@ -146,6 +144,12 @@ const Navbar = () => {
                     </div>
 
                     <div className="navbar-dropdown-footer">
+                      <div className="navbar-dropdown-item theme-row" onClick={toggleTheme}>
+                        {isDark ? <FiMoon /> : <FiSun />} Theme
+                        <div className={`navbar-theme-switch ${isDark ? 'dark' : ''}`}>
+                          <div className="navbar-theme-switch-knob" />
+                        </div>
+                      </div>
                       <button className="navbar-logout-btn" onClick={handleLogout}>
                         <FiLogOut /> Sign Out
                       </button>
@@ -156,6 +160,15 @@ const Navbar = () => {
             </>
           ) : (
             <>
+              <button
+                className="navbar-theme-toggle"
+                onClick={toggleTheme}
+                aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              >
+                <span className={`theme-icon-wrap ${isDark ? 'dark' : 'light'}`}>
+                  {isDark ? <FiMoon /> : <FiSun />}
+                </span>
+              </button>
               <Link to={ROUTES.LOGIN}    className="navbar-btn-ghost">Sign In</Link>
               <Link to={ROUTES.REGISTER} className="navbar-btn-primary">Get Started</Link>
             </>
@@ -186,11 +199,6 @@ const Navbar = () => {
 
         <div className="navbar-mobile-divider" />
 
-        {/* Mobile Theme Toggle */}
-        <button className="navbar-mobile-link" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
-          {isDark ? <FiMoon /> : <FiSun />} {isDark ? 'Dark Mode' : 'Light Mode'}
-        </button>
-
         {isAuthenticated ? (
           <>
             <div className="navbar-mobile-user">
@@ -201,16 +209,30 @@ const Navbar = () => {
               </div>
             </div>
             <Link to={ROUTES.PROFILE} className="navbar-mobile-link"><FiUser /> Profile</Link>
-            <Link to={ROUTES.CART}    className="navbar-mobile-link"><FiShoppingCart /> Cart</Link>
+            {user?.role !== 'admin' && (
+              <Link to={ROUTES.CART}    className="navbar-mobile-link"><FiShoppingCart /> Cart</Link>
+            )}
             {user?.role === 'admin' && (
               <Link to={ROUTES.ADMIN_DASHBOARD} className="navbar-mobile-link"><FiSettings /> Admin</Link>
             )}
             <button className="navbar-mobile-logout" onClick={handleLogout}>
               <FiLogOut /> Sign Out
             </button>
+            <div className="navbar-mobile-link theme-row" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
+              {isDark ? <FiMoon /> : <FiSun />} Theme
+              <div className={`navbar-theme-switch ${isDark ? 'dark' : ''}`}>
+                <div className="navbar-theme-switch-knob" />
+              </div>
+            </div>
           </>
         ) : (
           <>
+            <div className="navbar-mobile-link theme-row" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
+              {isDark ? <FiMoon /> : <FiSun />} Theme
+              <div className={`navbar-theme-switch ${isDark ? 'dark' : ''}`}>
+                <div className="navbar-theme-switch-knob" />
+              </div>
+            </div>
             <Link to={ROUTES.LOGIN}    className="navbar-mobile-link">Sign In</Link>
             <Link to={ROUTES.REGISTER} className="navbar-mobile-btn">Get Started</Link>
           </>

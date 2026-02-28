@@ -436,3 +436,40 @@
 }
 .theme-icon-wrap.dark { color: #fbbf24; }
 .theme-icon-wrap.light { color: #7c3aed; }
+
+/* ── Theme Toggle Switch (in dropdown/mobile menu) ─────── */
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  cursor: pointer;
+}
+.theme-row .navbar-theme-switch {
+  margin-left: auto;
+}
+.navbar-theme-switch {
+  width: 40px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 11px;
+  position: relative;
+  transition: background 0.25s ease;
+  flex-shrink: 0;
+}
+.navbar-theme-switch.dark {
+  background: #7c3aed;
+}
+.navbar-theme-switch-knob {
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.navbar-theme-switch.dark .navbar-theme-switch-knob {
+  transform: translateX(18px);
+}

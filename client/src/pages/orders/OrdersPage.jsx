@@ -26,7 +26,7 @@ const OrdersPage = () => {
     const fetch = async () => {
       dispatch(setOrderLoading());
       try {
-        const res = await orderAPI.myOrders();
+        const res = await orderAPI.getMyOrders();
         dispatch(setOrders(res.data));
       } catch (err) {
         dispatch(setOrderError('Failed to load orders'));

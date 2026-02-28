@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginStart, loginSuccess, loginFailure } from '../../redux/slices/authSlice';
+import { fetchCart } from '../../redux/slices/cartSlice';
 import { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import {
@@ -48,6 +49,7 @@ const LoginPage = () => {
     try {
       const res = await authAPI.login(formData);
       dispatch(loginSuccess(res.data));
+      dispatch(fetchCart());
       toast.success(`Welcome back, ${res.data.user.name}! 🎉`);
       navigate(res.data.user.role === 'admin' ? '/admin/dashboard' : '/profile');
     } catch (err) {

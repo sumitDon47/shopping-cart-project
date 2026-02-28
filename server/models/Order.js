@@ -37,8 +37,15 @@ const orderSchema = new mongoose.Schema(
     shippingAddress: { type: shippingSchema, required: true },
     paymentMethod: {
       type: String,
-      enum: ["cod", "card", "upi"],
+      enum: ["cod", "card", "upi", "khalti"],
       default: "cod",
+    },
+    paymentResult: {
+      pidx:          { type: String },
+      transactionId: { type: String },
+      status:        { type: String },
+      amount:        { type: Number },
+      paidVia:       { type: String },
     },
     itemsPrice:    { type: Number, required: true },
     shippingPrice: { type: Number, default: 0 },

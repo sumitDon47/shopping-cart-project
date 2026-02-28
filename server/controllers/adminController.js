@@ -184,3 +184,20 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: "Failed to delete user" });
   }
 };
+
+/**
+ * GET /api/admin/payments
+ * Returns only paid orders with payment details
+ */
+export const getPaidOrders = async (req, res) => {
+  try {
+    const paidOrders = await Order.find({ isPaid: true })
+      .populate("user", "name email")
+      .sort({ paidAt: -1 });
+
+    res.json(paidOrders);
+  } catch (err) {
+    console.error("getPaidOrders error:", err);
+    res.status(500).json({ message: "Failed to fetch payments" });
+  }
+};

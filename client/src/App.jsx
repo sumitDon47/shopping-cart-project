@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import store from './redux/store';
+import { fetchCart } from './redux/slices/cartSlice';
 
 // Route Guards
 import ProtectedRoute, { PublicRoute } from './components/common/ProtectedRoute';
@@ -11,6 +12,7 @@ import ProtectedRoute, { PublicRoute } from './components/common/ProtectedRoute'
 import HomePage           from './pages/HomePage';
 import LoginPage          from './pages/auth/LoginPage';
 import RegisterPage       from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ProfilePage        from './pages/user/ProfilePage';
 import DashboardPage      from './pages/user/DashboardPage';
 import ProductsPage       from './pages/products/ProductsPage';
@@ -22,15 +24,33 @@ import OrderDetailPage     from './pages/orders/OrderDetailPage';
 import AdminDashboard      from './pages/admin/AdminDashboard';
 import AdminProducts       from './pages/admin/AdminProducts';
 import AdminUsers          from './pages/admin/AdminUsers';
+import AdminPayments       from './pages/admin/AdminPayments';
+import AdminOrders         from './pages/admin/AdminOrders';
+import KhaltiCallback      from './pages/payment/KhaltiCallback';
 import NotFound            from './pages/NotFound';
 
 import { ROUTES } from './utils/constants';
 import './App.css';
 
+/* Fetch the user's persisted cart when the app loads with an existing session */
+const AppInit = ({ children }) => {
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((s) => s.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCart());
+    }
+  }, [isAuthenticated, dispatch]);
+
+  return children;
+};
+
 function App() {
   return (
     <Provider store={store}>
       <Router>
+        <AppInit>
 
         {/* ── Toast Notifications ───────────────────────── */}
         <Toaster
@@ -59,6 +79,7 @@ function App() {
           {/* ── Auth pages (redirect if logged in) ────────── */}
           <Route path={ROUTES.LOGIN}    element={<PublicRoute><LoginPage    /></PublicRoute>} />
           <Route path={ROUTES.REGISTER} element={<PublicRoute><RegisterPage /></PublicRoute>} />
+          <Route path={ROUTES.FORGOT_PASSWORD} element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
 
           {/* ── Products ──────────────────────────────────── */}
           <Route path={ROUTES.PRODUCTS}       element={<ProductsPage />} />
@@ -71,6 +92,7 @@ function App() {
           <Route path={ROUTES.CHECKOUT}  element={<ProtectedRoute><CheckoutPage  /></ProtectedRoute>} />
           <Route path={ROUTES.ORDERS}    element={<ProtectedRoute><OrdersPage    /></ProtectedRoute>} />
           <Route path={ROUTES.ORDER_DETAIL} element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+          <Route path={ROUTES.KHALTI_CALLBACK} element={<ProtectedRoute><KhaltiCallback /></ProtectedRoute>} />
 
           {/* ── Admin pages (role-guarded) ─────────────────── */}
           <Route
@@ -97,12 +119,29 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path={ROUTES.ADMIN_PAYMENTS}
+            element={
+              <ProtectedRoute role="admin">
+                <AdminPayments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.ADMIN_ORDERS}
+            element={
+              <ProtectedRoute role="admin">
+                <AdminOrders />
+              </ProtectedRoute>
+            }
+          />
 
           {/* ── 404 ───────────────────────────────────────── */}
           <Route path="/404"  element={<NotFound />} />
           <Route path="*"     element={<Navigate to="/404" replace />} />
         </Routes>
 
+        </AppInit>
       </Router>
     </Provider>
   );

@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOrder, setOrderLoading, setOrderError, clearOrder } from '../../redux/slices/orderSlice';
-import { orderAPI } from '../../services/api';
+import { orderAPI, paymentAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
@@ -23,10 +23,18 @@ const STATUS_CONFIG = {
 
 const STEPS = ['pending', 'processing', 'shipped', 'delivered'];
 
+const PAYMENT_LABELS = {
+  cod: 'Cash on Delivery',
+  card: 'Credit / Debit Card',
+  upi: 'UPI',
+  khalti: 'Khalti',
+};
+
 const OrderDetailPage = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { order, loading } = useSelector((s) => s.orders);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -113,11 +121,32 @@ const OrderDetailPage = () => {
               <div className="od-card">
                 <h2><FiCreditCard /> Payment</h2>
                 <p className="od-payment-method">
-                  {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod === 'card' ? 'Credit / Debit Card' : 'UPI'}
+                  {PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod}
                 </p>
                 <span className={`od-paid-badge ${order.isPaid ? 'paid' : 'unpaid'}`}>
                   {order.isPaid ? 'Paid' : 'Not Paid'}
                 </span>
+                {order.paymentResult?.transactionId && (
+                  <p className="od-txn-id">Txn: {order.paymentResult.transactionId}</p>
+                )}
+                {!order.isPaid && order.paymentMethod === 'khalti' && order.status !== 'cancelled' && (
+                  <button
+                    className="od-pay-btn"
+                    disabled={paying}
+                    onClick={async () => {
+                      setPaying(true);
+                      try {
+                        const res = await paymentAPI.khaltiInitiate({ orderId: order._id });
+                        window.location.href = res.data.payment_url;
+                      } catch (err) {
+                        toast.error(err.response?.data?.message || 'Failed to initiate payment');
+                        setPaying(false);
+                      }
+                    }}
+                  >
+                    {paying ? 'Redirecting...' : 'Pay Now with Khalti'}
+                  </button>
+                )}
               </div>
 
               {/* Summary */}

@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
-import { ROUTES } from '../../utils/constants';
-import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
+import AdminHeader from './AdminHeader';
 import {
   FiUsers, FiShoppingBag, FiPackage, FiDollarSign,
-  FiTrendingUp, FiBarChart2, FiActivity, FiBox,
+  FiTrendingUp, FiBarChart2, FiActivity,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import './Admin.css';
@@ -14,7 +12,6 @@ import './Admin.css';
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
     fetchStats();
@@ -37,30 +34,14 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-page">
-      <Navbar />
       <main className="admin-main">
         <div className="admin-inner">
 
-          {/* ── Header ───────────────────────────────────── */}
-          <div className="admin-header">
-            <div>
-              <h1 className="admin-title">
-                Admin <span className="admin-gradient">Dashboard</span>
-              </h1>
-              <p className="admin-subtitle">Monitor sales, users, and inventory at a glance</p>
-            </div>
-            <nav className="admin-nav">
-              <Link to={ROUTES.ADMIN_DASHBOARD} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_DASHBOARD ? 'active' : ''}`}>
-                <FiBarChart2 /> Overview
-              </Link>
-              <Link to={ROUTES.ADMIN_PRODUCTS} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_PRODUCTS ? 'active' : ''}`}>
-                <FiBox /> Products
-              </Link>
-              <Link to={ROUTES.ADMIN_USERS} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_USERS ? 'active' : ''}`}>
-                <FiUsers /> Users
-              </Link>
-            </nav>
-          </div>
+          <AdminHeader
+            title="Admin"
+            gradient="Dashboard"
+            subtitle="Monitor sales, users, and inventory at a glance"
+          />
 
           {loading ? (
             <div className="admin-loader"><div className="admin-spinner" /></div>

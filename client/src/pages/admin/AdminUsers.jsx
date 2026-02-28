@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
-import { ROUTES } from '../../utils/constants';
-import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
+import AdminHeader from './AdminHeader';
 import {
-  FiUsers, FiBox, FiBarChart2,
-  FiTrash2, FiSearch, FiX, FiMail, FiCalendar, FiShoppingCart,
+  FiTrash2, FiSearch, FiX, FiMail, FiShoppingCart, FiCalendar,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import './Admin.css';
@@ -15,7 +12,6 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const location = useLocation();
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -48,30 +44,14 @@ const AdminUsers = () => {
 
   return (
     <div className="admin-page">
-      <Navbar />
       <main className="admin-main">
         <div className="admin-inner">
 
-          {/* ── Header ─────────────────────────────────── */}
-          <div className="admin-header">
-            <div>
-              <h1 className="admin-title">
-                User <span className="admin-gradient">Activity</span>
-              </h1>
-              <p className="admin-subtitle">{users.length} registered users</p>
-            </div>
-            <nav className="admin-nav">
-              <Link to={ROUTES.ADMIN_DASHBOARD} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_DASHBOARD ? 'active' : ''}`}>
-                <FiBarChart2 /> Overview
-              </Link>
-              <Link to={ROUTES.ADMIN_PRODUCTS} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_PRODUCTS ? 'active' : ''}`}>
-                <FiBox /> Products
-              </Link>
-              <Link to={ROUTES.ADMIN_USERS} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_USERS ? 'active' : ''}`}>
-                <FiUsers /> Users
-              </Link>
-            </nav>
-          </div>
+          <AdminHeader
+            title="User"
+            gradient="Activity"
+            subtitle={`${users.length} registered users`}
+          />
 
           {/* ── Search ─────────────────────────────────── */}
           <div className="admin-toolbar">

@@ -33,12 +33,15 @@ api.interceptors.response.use(
 
 // ── Auth ──────────────────────────────────────────────────
 export const authAPI = {
-  sendOTP:       (data) => api.post('/auth/send-otp', data),
-  verifyOTP:     (data) => api.post('/auth/verify-otp', data),
-  resendOTP:     (data) => api.post('/auth/resend-otp', data),
-  login:         (data) => api.post('/auth/login', data),
-  getMe:         ()     => api.get('/auth/me'),
-  updateProfile: (data) => api.put('/auth/profile', data),
+  sendOTP:        (data) => api.post('/auth/send-otp', data),
+  verifyOTP:      (data) => api.post('/auth/verify-otp', data),
+  resendOTP:      (data) => api.post('/auth/resend-otp', data),
+  login:          (data) => api.post('/auth/login', data),
+  getMe:          ()     => api.get('/auth/me'),
+  updateProfile:  (data) => api.put('/auth/profile', data),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  resetPassword:  (data) => api.post('/auth/reset-password', data),
+  deleteAccount:  ()     => api.delete('/auth/me'),
 };
 
 // ── User ──────────────────────────────────────────────────
@@ -78,12 +81,19 @@ export const orderAPI = {
   pay:         (id, data) => api.put(`/orders/${id}/pay`, data),
 };
 
+// ── Payment ───────────────────────────────────────────────
+export const paymentAPI = {
+  khaltiInitiate: (data) => api.post('/payment/khalti/initiate', data),
+  khaltiVerify:   (data) => api.post('/payment/khalti/verify', data),
+};
+
 // ── Admin ─────────────────────────────────────────────────
 export const adminAPI = {
-  getStats:    ()     => api.get('/admin/stats'),
-  getUsers:    ()     => api.get('/admin/users'),
-  deleteUser:  (id)   => api.delete(`/admin/users/${id}`),
-  // Products managed via productAPI (create / update / delete)
+  getStats:      ()     => api.get('/admin/stats'),
+  getUsers:      ()     => api.get('/admin/users'),
+  deleteUser:    (id)   => api.delete(`/admin/users/${id}`),
+  getPaidOrders: ()     => api.get('/admin/payments'),
+  getAllOrders:  ()     => api.get('/orders'),
 };
 
 export default api;

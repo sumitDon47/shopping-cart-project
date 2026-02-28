@@ -17,7 +17,7 @@ const ProductsPage = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { products, categories, loading, page, pages, total } = useSelector((s) => s.products);
-  const { isAuthenticated } = useSelector((s) => s.auth);
+  const { isAuthenticated, user } = useSelector((s) => s.auth);
 
   const [search, setSearch]     = useState(searchParams.get('search') || '');
   const [category, setCategory] = useState(searchParams.get('category') || 'all');
@@ -67,6 +67,7 @@ const ProductsPage = () => {
 
   const handleAddToCart = async (productId) => {
     if (!isAuthenticated) { toast.error('Please login to add items to cart'); return; }
+    if (user?.role === 'admin') { toast.error('Admin accounts cannot purchase products'); return; }
     setAddingToCart(productId);
     try {
       const res = await cartAPI.add({ productId, quantity: 1 });
@@ -191,17 +192,19 @@ const ProductsPage = () => {
                     </div>
                     <div className="product-card-footer">
                       <span className="product-card-price">${product.price.toFixed(2)}</span>
-                      <button
-                        className="product-add-btn"
-                        onClick={() => handleAddToCart(product._id)}
-                        disabled={product.stock === 0 || addingToCart === product._id}
-                      >
-                        {addingToCart === product._id ? (
-                          <span className="btn-spinner" />
-                        ) : (
-                          <><FiShoppingCart /> Add</>
-                        )}
-                      </button>
+                      {user?.role !== 'admin' && (
+                        <button
+                          className="product-add-btn"
+                          onClick={() => handleAddToCart(product._id)}
+                          disabled={product.stock === 0 || addingToCart === product._id}
+                        >
+                          {addingToCart === product._id ? (
+                            <span className="btn-spinner" />
+                          ) : (
+                            <><FiShoppingCart /> Add</>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

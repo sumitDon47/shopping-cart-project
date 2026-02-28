@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Otp from "../models/Otp.js";
+import { sendRegistrationOTP, sendPasswordResetOTP } from "../utils/email.js";
 
 // Generate JWT
 const signToken = (id) =>
@@ -41,13 +42,12 @@ export const sendOTP = async (req, res) => {
       otp,
     });
 
-    // In production, send via email (nodemailer, etc.)
-    // For development, log it
-    console.log(`\n📧 OTP for ${email}: ${otp}\n`);
+    // Send OTP via email
+    await sendRegistrationOTP(email.toLowerCase(), name.trim(), otp);
+    console.log(`📧 OTP sent to ${email}`);
 
     res.status(200).json({
-      message: "OTP sent successfully",
-      ...(process.env.NODE_ENV === "development" && { otp }), // expose in dev only
+      message: "OTP sent successfully. Check your email.",
     });
   } catch (err) {
     console.error("sendOTP error:", err);
@@ -81,11 +81,12 @@ export const resendOTP = async (req, res) => {
       otp,
     });
 
-    console.log(`\n📧 Resent OTP for ${email}: ${otp}\n`);
+    // Resend OTP via email
+    await sendRegistrationOTP(email.toLowerCase(), existing.name, otp);
+    console.log(`📧 OTP resent to ${email}`);
 
     res.status(200).json({
-      message: "OTP resent successfully",
-      ...(process.env.NODE_ENV === "development" && { otp }),
+      message: "OTP resent successfully. Check your email.",
     });
   } catch (err) {
     console.error("resendOTP error:", err);
@@ -224,5 +225,114 @@ export const updateProfile = async (req, res) => {
   } catch (err) {
     console.error("updateProfile error:", err);
     res.status(500).json({ message: "Failed to update profile" });
+  }
+};
+
+/**
+ * POST /api/auth/forgot-password
+ * Send OTP for password reset
+ */
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      // Don't reveal if email exists — return success either way
+      return res.status(200).json({ message: "If this email is registered, you will receive a reset code" });
+    }
+
+    // Remove any previous reset OTP for this email
+    await Otp.deleteMany({ email: email.toLowerCase(), purpose: "password-reset" });
+
+    const otp = generateOTP();
+
+    await Otp.create({
+      email: email.toLowerCase(),
+      otp,
+      purpose: "password-reset",
+    });
+
+    // Send password reset OTP via email
+    await sendPasswordResetOTP(email.toLowerCase(), otp);
+    console.log(`🔑 Password reset OTP sent to ${email}`);
+
+    res.status(200).json({
+      message: "Reset code sent to your email",
+    });
+  } catch (err) {
+    console.error("forgotPassword error:", err);
+    res.status(500).json({ message: "Failed to send reset code" });
+  }
+};
+
+/**
+ * POST /api/auth/reset-password
+ * Verify OTP and set new password
+ */
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: "Email, OTP, and new password are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const otpRecord = await Otp.findOne({
+      email: email.toLowerCase(),
+      purpose: "password-reset",
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: "Reset code expired or not found. Please request a new one." });
+    }
+
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({ message: "Invalid reset code" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.password = password;
+    await user.save();
+
+    // Clean up OTP
+    await Otp.deleteMany({ email: email.toLowerCase(), purpose: "password-reset" });
+
+    res.status(200).json({ message: "Password reset successfully. You can now log in." });
+  } catch (err) {
+    console.error("resetPassword error:", err);
+    res.status(500).json({ message: "Failed to reset password" });
+  }
+};
+
+/**
+ * DELETE /api/auth/me
+ * Delete the logged-in user's own account
+ */
+export const deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.findByIdAndDelete(req.user._id);
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (err) {
+    console.error("deleteAccount error:", err);
+    res.status(500).json({ message: "Failed to delete account" });
   }
 };

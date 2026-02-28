@@ -16,11 +16,12 @@ router.use(protect);
 
 router.post("/",        createOrder);
 router.get("/myorders", getMyOrders);
-router.get("/:id",      getOrderById);
 
 // Admin
 router.get("/",               authorize("admin"), getAllOrders);
 router.put("/:id/status",     authorize("admin"), updateOrderStatus);
+
+router.get("/:id",      getOrderById);
 router.put("/:id/pay",        payOrder);
 
 export default router;

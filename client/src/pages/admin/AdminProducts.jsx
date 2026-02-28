@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { productAPI } from '../../services/api';
-import { ROUTES } from '../../utils/constants';
-import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
+import AdminHeader from './AdminHeader';
 import {
-  FiUsers, FiBox, FiBarChart2, FiPlus,
-  FiTrash2, FiSearch, FiX,
+  FiPlus, FiTrash2, FiSearch, FiX,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import './Admin.css';
@@ -17,7 +14,6 @@ const AdminProducts = () => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const location = useLocation();
 
   const [form, setForm] = useState({
     name: '', description: '', mrp: '', price: '',
@@ -89,30 +85,14 @@ const AdminProducts = () => {
 
   return (
     <div className="admin-page">
-      <Navbar />
       <main className="admin-main">
         <div className="admin-inner">
 
-          {/* ── Header ─────────────────────────────────── */}
-          <div className="admin-header">
-            <div>
-              <h1 className="admin-title">
-                Manage <span className="admin-gradient">Products</span>
-              </h1>
-              <p className="admin-subtitle">{products.length} products in catalog</p>
-            </div>
-            <nav className="admin-nav">
-              <Link to={ROUTES.ADMIN_DASHBOARD} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_DASHBOARD ? 'active' : ''}`}>
-                <FiBarChart2 /> Overview
-              </Link>
-              <Link to={ROUTES.ADMIN_PRODUCTS} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_PRODUCTS ? 'active' : ''}`}>
-                <FiBox /> Products
-              </Link>
-              <Link to={ROUTES.ADMIN_USERS} className={`admin-nav-btn ${location.pathname === ROUTES.ADMIN_USERS ? 'active' : ''}`}>
-                <FiUsers /> Users
-              </Link>
-            </nav>
-          </div>
+          <AdminHeader
+            title="Manage"
+            gradient="Products"
+            subtitle={`${products.length} products in catalog`}
+          />
 
           {/* ── Toolbar ────────────────────────────────── */}
           <div className="admin-toolbar">

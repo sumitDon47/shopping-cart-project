@@ -19,7 +19,7 @@ const ProductDetailPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { product, loading } = useSelector((s) => s.products);
-  const { isAuthenticated } = useSelector((s) => s.auth);
+  const { isAuthenticated, user } = useSelector((s) => s.auth);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
 
@@ -40,6 +40,7 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) { toast.error('Please login to add items to cart'); navigate('/login'); return; }
+    if (user?.role === 'admin') { toast.error('Admin accounts cannot purchase products'); return; }
     setAddingToCart(true);
     try {
       const res = await cartAPI.add({ productId: product._id, quantity });
@@ -104,7 +105,7 @@ const ProductDetailPage = () => {
               </div>
 
               {/* Quantity + Add to Cart */}
-              {product.stock > 0 && (
+              {product.stock > 0 && user?.role !== 'admin' && (
                 <div className="pd-actions">
                   <div className="pd-quantity">
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="pd-qty-btn"><FiMinus /></button>

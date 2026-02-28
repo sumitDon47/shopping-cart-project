@@ -17,7 +17,15 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, totalPrice, totalItems, loading } = useSelector((s) => s.cart);
+  const { user } = useSelector((s) => s.auth);
   const [updating, setUpdating] = useState(null);
+
+  // Admin cannot access cart — redirect to admin dashboard
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const fetchCart = async () => {

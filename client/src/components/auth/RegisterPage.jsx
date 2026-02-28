@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess, setRegistrationStep } from '../../redux/slices/authSlice';
+import { fetchCart } from '../../redux/slices/cartSlice';
 import { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import {
@@ -348,6 +349,7 @@ const SetPasswordStep = ({ registrationData, otpCode, onBack }) => {
         password: formData.password
       });
       dispatch(loginSuccess(res.data));
+      dispatch(fetchCart());
       toast.success('Account created successfully! 🎉');
       navigate('/profile');
     } catch (err) {

@@ -49,9 +49,10 @@ export const userAPI = {
 
 // ── Products ──────────────────────────────────────────────
 export const productAPI = {
-  getAll:    (params) => api.get('/products', { params }),
-  getById:   (id)     => api.get(`/products/${id}`),
-  getTop:    ()       => api.get('/products/top'),
+  getAll:         (params) => api.get('/products', { params }),
+  getById:        (id)     => api.get(`/products/${id}`),
+  getTop:         ()       => api.get('/products/top'),
+  getCategories:  ()       => api.get('/products/categories'),
   create:    (data)   => api.post('/products', data),
   update:    (id, data) => api.put(`/products/${id}`, data),
   delete:    (id)     => api.delete(`/products/${id}`),
@@ -75,6 +76,14 @@ export const orderAPI = {
   getAll:      ()     => api.get('/orders'),
   updateStatus:(id, data) => api.put(`/orders/${id}/status`, data),
   pay:         (id, data) => api.put(`/orders/${id}/pay`, data),
+};
+
+// ── Admin ─────────────────────────────────────────────────
+export const adminAPI = {
+  getStats:    ()     => api.get('/admin/stats'),
+  getUsers:    ()     => api.get('/admin/users'),
+  deleteUser:  (id)   => api.delete(`/admin/users/${id}`),
+  // Products managed via productAPI (create / update / delete)
 };
 
 export default api;

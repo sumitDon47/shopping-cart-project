@@ -7,9 +7,14 @@ export const ROUTES = {
   PROFILE: '/profile',
   DASHBOARD: '/dashboard',
   ADMIN_DASHBOARD: '/admin/dashboard',
+  ADMIN_PRODUCTS: '/admin/products',
+  ADMIN_USERS: '/admin/users',
   PRODUCTS: '/products',
+  PRODUCT_DETAIL: '/products/:id',
   CART: '/cart',
+  CHECKOUT: '/checkout',
   ORDERS: '/orders',
+  ORDER_DETAIL: '/orders/:id',
 };
 
 export const USER_ROLES = {

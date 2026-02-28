@@ -5,8 +5,10 @@ import { logout } from '../../redux/slices/authSlice';
 import { ROUTES } from '../../utils/constants';
 import {
   FiShoppingBag, FiUser, FiShoppingCart, FiLogOut,
-  FiMenu, FiX, FiSettings, FiPackage, FiChevronDown,
+  FiMenu, FiX, FiSettings, FiPackage, FiChevronDown, FiBox, FiUsers,
+  FiSun, FiMoon,
 } from 'react-icons/fi';
+import { useTheme } from '../../context/ThemeContext';
 import toast from 'react-hot-toast';
 import './Navbar.css';
 
@@ -15,6 +17,8 @@ const Navbar = () => {
   const location   = useLocation();
   const dispatch   = useDispatch();
   const { isAuthenticated, user } = useSelector((s) => s.auth);
+  const { totalItems: cartCount } = useSelector((s) => s.cart);
+  const { theme, toggleTheme, isDark } = useTheme();
 
   const [scrolled,     setScrolled]     = useState(false);
   const [mobileOpen,   setMobileOpen]   = useState(false);
@@ -79,12 +83,23 @@ const Navbar = () => {
 
         {/* ── Desktop Actions ─────────────────────────── */}
         <div className="navbar-actions">
+          {/* Theme Toggle */}
+          <button
+            className="navbar-theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+          >
+            <span className={`theme-icon-wrap ${isDark ? 'dark' : 'light'}`}>
+              {isDark ? <FiMoon /> : <FiSun />}
+            </span>
+          </button>
+
           {isAuthenticated ? (
             <>
               {/* Cart */}
               <Link to={ROUTES.CART} className="navbar-icon-btn" aria-label="Cart">
                 <FiShoppingCart />
-                <span className="navbar-cart-badge">0</span>
+                {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
               </Link>
 
               {/* User Dropdown */}
@@ -116,9 +131,17 @@ const Navbar = () => {
                         <FiPackage /> My Orders
                       </Link>
                       {user?.role === 'admin' && (
-                        <Link to={ROUTES.ADMIN_DASHBOARD} className="navbar-dropdown-item admin" onClick={() => setDropdownOpen(false)}>
-                          <FiSettings /> Admin Dashboard
-                        </Link>
+                        <>
+                          <Link to={ROUTES.ADMIN_DASHBOARD} className="navbar-dropdown-item admin" onClick={() => setDropdownOpen(false)}>
+                            <FiSettings /> Admin Dashboard
+                          </Link>
+                          <Link to={ROUTES.ADMIN_PRODUCTS} className="navbar-dropdown-item admin" onClick={() => setDropdownOpen(false)}>
+                            <FiBox /> Manage Products
+                          </Link>
+                          <Link to={ROUTES.ADMIN_USERS} className="navbar-dropdown-item admin" onClick={() => setDropdownOpen(false)}>
+                            <FiUsers /> Manage Users
+                          </Link>
+                        </>
                       )}
                     </div>
 
@@ -162,6 +185,11 @@ const Navbar = () => {
         ))}
 
         <div className="navbar-mobile-divider" />
+
+        {/* Mobile Theme Toggle */}
+        <button className="navbar-mobile-link" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
+          {isDark ? <FiMoon /> : <FiSun />} {isDark ? 'Dark Mode' : 'Light Mode'}
+        </button>
 
         {isAuthenticated ? (
           <>

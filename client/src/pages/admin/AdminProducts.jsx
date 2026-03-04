@@ -3,10 +3,15 @@ import { productAPI } from '../../services/api';
 import Footer from '../../components/common/Footer';
 import AdminHeader from './AdminHeader';
 import {
-  FiPlus, FiTrash2, FiSearch, FiX,
+  FiPlus, FiTrash2, FiSearch, FiX, FiEdit2, FiAlertTriangle,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import './Admin.css';
+
+const EMPTY_FORM = {
+  name: '', description: '', mrp: '', price: '',
+  image: '', category: '', brand: '', stock: '',
+};
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -14,11 +19,9 @@ const AdminProducts = () => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);  // null = add mode, id = edit mode
 
-  const [form, setForm] = useState({
-    name: '', description: '', mrp: '', price: '',
-    image: '', category: '', brand: '', stock: '',
-  });
+  const [form, setForm] = useState({ ...EMPTY_FORM });
 
   useEffect(() => { fetchProducts(); }, []);
 
@@ -31,6 +34,27 @@ const AdminProducts = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openAddModal = () => {
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM });
+    setShowModal(true);
+  };
+
+  const openEditModal = (product) => {
+    setEditingId(product._id);
+    setForm({
+      name: product.name || '',
+      description: product.description || '',
+      mrp: product.mrp?.toString() || '',
+      price: product.price?.toString() || '',
+      image: product.image || '',
+      category: product.category || '',
+      brand: product.brand || '',
+      stock: product.stock?.toString() || '0',
+    });
+    setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
@@ -46,21 +70,34 @@ const AdminProducts = () => {
       toast.error('Price cannot exceed MRP');
       return;
     }
+    if (form.stock === '' || Number(form.stock) < 0) {
+      toast.error('Stock quantity must be 0 or more');
+      return;
+    }
 
     setSubmitting(true);
     try {
-      await productAPI.create({
+      const payload = {
         ...form,
         mrp: Number(form.mrp),
         price: Number(form.price),
-        stock: Number(form.stock) || 0,
-      });
-      toast.success('Product added!');
+        stock: Number(form.stock),
+      };
+
+      if (editingId) {
+        await productAPI.update(editingId, payload);
+        toast.success('Product updated!');
+      } else {
+        await productAPI.create(payload);
+        toast.success('Product added!');
+      }
+
       setShowModal(false);
-      setForm({ name: '', description: '', mrp: '', price: '', image: '', category: '', brand: '', stock: '' });
+      setForm({ ...EMPTY_FORM });
+      setEditingId(null);
       fetchProducts();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to add product');
+      toast.error(err.response?.data?.message || `Failed to ${editingId ? 'update' : 'add'} product`);
     } finally {
       setSubmitting(false);
     }
@@ -83,6 +120,9 @@ const AdminProducts = () => {
     p.brand?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const outOfStockCount = products.filter((p) => p.stock === 0).length;
+  const lowStockCount = products.filter((p) => p.stock > 0 && p.stock < 10).length;
+
   return (
     <div className="admin-page">
       <main className="admin-main">
@@ -93,6 +133,22 @@ const AdminProducts = () => {
             gradient="Products"
             subtitle={`${products.length} products in catalog`}
           />
+
+          {/* ── Stock Alerts ───────────────────────────── */}
+          {(outOfStockCount > 0 || lowStockCount > 0) && (
+            <div className="admin-stock-alerts">
+              {outOfStockCount > 0 && (
+                <div className="admin-stock-alert out">
+                  <FiAlertTriangle /> <strong>{outOfStockCount}</strong> product{outOfStockCount > 1 ? 's' : ''} out of stock
+                </div>
+              )}
+              {lowStockCount > 0 && (
+                <div className="admin-stock-alert low">
+                  <FiAlertTriangle /> <strong>{lowStockCount}</strong> product{lowStockCount > 1 ? 's' : ''} with low stock (&lt;10)
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Toolbar ────────────────────────────────── */}
           <div className="admin-toolbar">
@@ -111,7 +167,7 @@ const AdminProducts = () => {
                 />
               )}
             </div>
-            <button className="admin-add-btn" onClick={() => setShowModal(true)}>
+            <button className="admin-add-btn" onClick={openAddModal}>
               <FiPlus /> Add Product
             </button>
           </div>
@@ -141,27 +197,33 @@ const AdminProducts = () => {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <img src={p.image} alt={p.name} className="admin-product-img" />
                             <div>
-                              <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.875rem' }}>{p.name}</div>
-                              <div style={{ color: '#71717a', fontSize: '0.75rem' }}>{p.brand}</div>
+                              <div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.875rem' }}>{p.name}</div>
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{p.brand}</div>
                             </div>
                           </div>
                         </td>
                         <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
-                        <td style={{ color: '#71717a', textDecoration: 'line-through' }}>${p.mrp?.toFixed(2) || '—'}</td>
+                        <td style={{ color: 'var(--text-muted)', textDecoration: 'line-through' }}>${p.mrp?.toFixed(2) || '—'}</td>
                         <td style={{ color: '#34d399', fontWeight: 600 }}>${p.price.toFixed(2)}</td>
                         <td>
-                          <span style={{
-                            color: p.stock < 5 ? '#f87171' : p.stock < 15 ? '#fbbf24' : '#34d399',
-                            fontWeight: 600,
-                          }}>
-                            {p.stock}
-                          </span>
+                          {p.stock === 0 ? (
+                            <span className="admin-stock-badge out-of-stock">Out of Stock</span>
+                          ) : p.stock < 10 ? (
+                            <span className="admin-stock-badge low-stock">{p.stock} left</span>
+                          ) : (
+                            <span className="admin-stock-badge in-stock">{p.stock}</span>
+                          )}
                         </td>
                         <td>⭐ {p.rating?.toFixed(1) || '0.0'}</td>
                         <td>
-                          <button className="admin-delete-btn" onClick={() => handleDelete(p._id, p.name)}>
-                            <FiTrash2 /> Delete
-                          </button>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button className="admin-edit-btn" onClick={() => openEditModal(p)}>
+                              <FiEdit2 /> Edit
+                            </button>
+                            <button className="admin-delete-btn" onClick={() => handleDelete(p._id, p.name)}>
+                              <FiTrash2 /> Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -178,11 +240,13 @@ const AdminProducts = () => {
       </main>
       <Footer />
 
-      {/* ── Add Product Modal ──────────────────────────── */}
+      {/* ── Add / Edit Product Modal ───────────────────── */}
       {showModal && (
-        <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="admin-modal-overlay" onClick={() => { setShowModal(false); setEditingId(null); }}>
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="admin-modal-title">Add New Product</h2>
+            <h2 className="admin-modal-title">
+              {editingId ? 'Edit Product' : 'Add New Product'}
+            </h2>
             <form onSubmit={handleSubmit}>
               <div className="admin-form-group">
                 <label>Product Name *</label>
@@ -258,7 +322,7 @@ const AdminProducts = () => {
 
               <div className="admin-form-row">
                 <div className="admin-form-group">
-                  <label>Stock</label>
+                  <label>Stock Quantity *</label>
                   <input
                     type="number"
                     min="0"
@@ -266,6 +330,9 @@ const AdminProducts = () => {
                     onChange={(e) => setForm({ ...form, stock: e.target.value })}
                     placeholder="50"
                   />
+                  <span className="admin-form-hint">
+                    Set to 0 to mark as out of stock
+                  </span>
                 </div>
                 <div className="admin-form-group">
                   <label>Image URL</label>
@@ -280,13 +347,13 @@ const AdminProducts = () => {
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="submit" className="admin-form-submit" disabled={submitting}>
-                  {submitting ? 'Adding...' : 'Add Product'}
+                  {submitting ? (editingId ? 'Saving...' : 'Adding...') : (editingId ? 'Save Changes' : 'Add Product')}
                 </button>
                 <button
                   type="button"
                   className="admin-delete-btn"
                   style={{ flex: 'none', padding: '0.875rem 1.5rem' }}
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { setShowModal(false); setEditingId(null); }}
                 >
                   Cancel
                 </button>

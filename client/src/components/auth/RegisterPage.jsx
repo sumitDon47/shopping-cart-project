@@ -351,7 +351,7 @@ const SetPasswordStep = ({ registrationData, otpCode, onBack }) => {
       dispatch(loginSuccess(res.data));
       dispatch(fetchCart());
       toast.success('Account created successfully! 🎉');
-      navigate('/profile');
+      navigate('/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed';
       toast.error(msg);
@@ -493,7 +493,7 @@ const RegisterPage = () => {
 
   useEffect(() => {
     setMounted(true);
-    if (isAuthenticated) navigate('/profile');
+    if (isAuthenticated) navigate('/');
   }, [isAuthenticated, navigate]);
 
   return (

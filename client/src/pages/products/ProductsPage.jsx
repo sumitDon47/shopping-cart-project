@@ -7,6 +7,7 @@ import { setCart } from '../../redux/slices/cartSlice';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
+import useScrollReveal from '../../utils/useScrollReveal';
 import {
   FiSearch, FiFilter, FiGrid, FiList, FiShoppingCart,
   FiStar, FiChevronLeft, FiChevronRight, FiX, FiPackage,
@@ -27,6 +28,8 @@ const ProductsPage = () => {
   const [addingToCart, setAddingToCart] = useState(null);
 
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  useScrollReveal();
 
   // Fetch categories on mount
   useEffect(() => {
@@ -151,7 +154,7 @@ const ProductsPage = () => {
           )}
 
           {/* Category Chips (always visible) */}
-          <div className="products-category-bar">
+          <div className="products-category-bar reveal">
             <button className={`cat-chip ${category === 'all' ? 'active' : ''}`} onClick={() => handleCategoryChange('all')}>All</button>
             {categories.map((cat) => (
               <button key={cat} className={`cat-chip ${category === cat ? 'active' : ''}`} onClick={() => handleCategoryChange(cat)}>{cat}</button>
@@ -170,7 +173,7 @@ const ProductsPage = () => {
               <p>Try adjusting your search or filters</p>
             </div>
           ) : (
-            <div className={`products-grid ${viewMode}`}>
+            <div className={`products-grid ${viewMode} stagger-children`}>
               {products.map((product) => (
                 <div key={product._id} className="product-card">
                   <Link to={`/products/${product._id}`} className="product-card-image">

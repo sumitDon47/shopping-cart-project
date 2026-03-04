@@ -11,6 +11,7 @@ import {
   FiArrowLeft, FiPackage, FiMapPin, FiCreditCard,
   FiTruck, FiCheckCircle, FiClock, FiXCircle,
 } from 'react-icons/fi';
+import useScrollReveal from '../../utils/useScrollReveal';
 import './OrderDetailPage.css';
 
 const STATUS_CONFIG = {
@@ -31,6 +32,7 @@ const PAYMENT_LABELS = {
 };
 
 const OrderDetailPage = () => {
+  useScrollReveal();
   const { id } = useParams();
   const dispatch = useDispatch();
   const { order, loading } = useSelector((s) => s.orders);
@@ -63,7 +65,7 @@ const OrderDetailPage = () => {
         <div className="od-inner">
           <Link to="/orders" className="od-back"><FiArrowLeft /> Back to Orders</Link>
 
-          <div className="od-header">
+          <div className="od-header reveal">
             <div>
               <h1>Order #{order._id.slice(-8).toUpperCase()}</h1>
               <span className="od-date">{new Date(order.createdAt).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -75,7 +77,7 @@ const OrderDetailPage = () => {
 
           {/* Progress Tracker */}
           {order.status !== 'cancelled' && (
-            <div className="od-progress">
+            <div className="od-progress reveal">
               {STEPS.map((step, i) => (
                 <div key={step} className={`od-step ${i <= currentStep ? 'active' : ''} ${i === currentStep ? 'current' : ''}`}>
                   <div className="od-step-dot" />
@@ -85,7 +87,7 @@ const OrderDetailPage = () => {
             </div>
           )}
 
-          <div className="od-grid">
+          <div className="od-grid reveal">
             {/* Items */}
             <div className="od-card od-items-card">
               <h2><FiPackage /> Items ({order.items.length})</h2>

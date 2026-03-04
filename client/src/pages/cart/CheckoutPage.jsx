@@ -10,9 +10,11 @@ import {
   FiArrowLeft, FiMapPin, FiCreditCard, FiCheck,
   FiTruck, FiPackage,
 } from 'react-icons/fi';
+import useScrollReveal from '../../utils/useScrollReveal';
 import './CheckoutPage.css';
 
 const CheckoutPage = () => {
+  useScrollReveal();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, totalPrice, totalItems } = useSelector((s) => s.cart);

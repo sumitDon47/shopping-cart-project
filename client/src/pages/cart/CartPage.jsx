@@ -11,9 +11,11 @@ import {
   FiTrash2, FiMinus, FiPlus, FiShoppingBag,
   FiArrowRight, FiShoppingCart, FiPackage,
 } from 'react-icons/fi';
+import useScrollReveal from '../../utils/useScrollReveal';
 import './CartPage.css';
 
 const CartPage = () => {
+  useScrollReveal();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, totalPrice, totalItems, loading } = useSelector((s) => s.cart);

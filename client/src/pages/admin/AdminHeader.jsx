@@ -6,8 +6,9 @@ import { clearCart } from '../../redux/slices/cartSlice';
 import { ROUTES } from '../../utils/constants';
 import {
   FiBarChart2, FiBox, FiUsers, FiCreditCard, FiPackage,
-  FiLogOut, FiChevronDown, FiUser,
+  FiLogOut, FiChevronDown, FiUser, FiSun, FiMoon,
 } from 'react-icons/fi';
+import { useTheme } from '../../context/ThemeContext';
 import toast from 'react-hot-toast';
 
 const AdminHeader = ({ title, gradient, subtitle }) => {
@@ -15,6 +16,7 @@ const AdminHeader = ({ title, gradient, subtitle }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((s) => s.auth);
+  const { toggleTheme, isDark } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -85,6 +87,12 @@ const AdminHeader = ({ title, gradient, subtitle }) => {
                 >
                   <FiUser /> Profile
                 </Link>
+                <div className="admin-dropdown-item admin-theme-row" onClick={toggleTheme}>
+                  {isDark ? <FiMoon /> : <FiSun />} Theme
+                  <div className={`admin-theme-switch ${isDark ? 'dark' : ''}`}>
+                    <div className="admin-theme-switch-knob" />
+                  </div>
+                </div>
                 <button className="admin-dropdown-item signout" onClick={handleLogout}>
                   <FiLogOut /> Sign Out
                 </button>

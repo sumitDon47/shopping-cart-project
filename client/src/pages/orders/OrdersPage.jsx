@@ -8,6 +8,7 @@ import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
 import { PageLoader } from '../../components/common/Loader';
 import { FiPackage, FiArrowRight, FiShoppingBag } from 'react-icons/fi';
+import useScrollReveal from '../../utils/useScrollReveal';
 import './OrdersPage.css';
 
 const STATUS_COLORS = {
@@ -19,6 +20,7 @@ const STATUS_COLORS = {
 };
 
 const OrdersPage = () => {
+  useScrollReveal();
   const dispatch = useDispatch();
   const { orders, loading } = useSelector((s) => s.orders);
 
@@ -43,7 +45,7 @@ const OrdersPage = () => {
       <Navbar />
       <main className="orders-main">
         <div className="orders-inner">
-          <h1 className="orders-title"><FiPackage /> My Orders</h1>
+          <h1 className="orders-title reveal"><FiPackage /> My Orders</h1>
 
           {(!orders || orders.length === 0) ? (
             <div className="orders-empty">
@@ -53,7 +55,7 @@ const OrdersPage = () => {
               <Link to="/products" className="orders-browse-btn">Browse Products</Link>
             </div>
           ) : (
-            <div className="orders-list">
+            <div className="orders-list stagger-children">
               {orders.map((order) => (
                 <Link to={`/orders/${order._id}`} key={order._id} className="order-card">
                   <div className="order-card-top">

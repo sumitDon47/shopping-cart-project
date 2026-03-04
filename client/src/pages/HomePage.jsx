@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { FiShoppingBag, FiArrowRight, FiZap, FiShield, FiRefreshCw, FiTruck } from 'react-icons/fi';
+import {
+  FiShoppingBag, FiArrowRight, FiZap, FiShield, FiRefreshCw,
+  FiTruck, FiStar, FiShoppingCart, FiAward, FiHeart, FiClock,
+} from 'react-icons/fi';
 import { ROUTES } from '../utils/constants';
+import { productAPI } from '../services/api';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import useScrollReveal from '../utils/useScrollReveal';
 import './HomePage.css';
 
 const features = [
@@ -23,8 +28,29 @@ const categories = [
   { label: 'Home',          emoji: '🏠', color: '#0891b2' },
 ];
 
+const trustBadges = [
+  { icon: <FiShield />,   text: 'Secure Checkout' },
+  { icon: <FiTruck />,    text: 'Free Shipping 50+' },
+  { icon: <FiRefreshCw />,text: '30-Day Returns' },
+  { icon: <FiAward />,    text: 'Quality Guaranteed' },
+];
+
 const HomePage = () => {
   const { isAuthenticated } = useSelector((s) => s.auth);
+  const [trending, setTrending] = useState([]);
+
+  useScrollReveal();
+
+  // Fetch top-rated products for the "Trending" section
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const res = await productAPI.getAll({ limit: 8, sort: '-rating' });
+        setTrending(res.data?.products || []);
+      } catch { /* silent */ }
+    };
+    fetchTrending();
+  }, []);
 
   return (
     <div className="home-page">
@@ -75,10 +101,64 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* ── Trust Bar ─────────────────────────────────────── */}
+      <section className="home-trust-bar reveal">
+        <div className="home-trust-inner">
+          {trustBadges.map(({ icon, text }) => (
+            <div key={text} className="home-trust-item">
+              {icon}
+              <span>{text}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Trending Products ─────────────────────────────── */}
+      {trending.length > 0 && (
+        <section className="home-trending">
+          <div className="home-section-inner">
+            <div className="home-section-header reveal">
+              <div>
+                <span className="home-section-badge"><FiZap /> Hot Right Now</span>
+                <h2 className="home-section-title">Trending Products</h2>
+              </div>
+              <Link to={ROUTES.PRODUCTS} className="home-see-all">View all <FiArrowRight /></Link>
+            </div>
+            <div className="home-trending-grid stagger-children reveal">
+              {trending.slice(0, 8).map((product) => (
+                <Link to={`/products/${product._id}`} key={product._id} className="home-product-card">
+                  <div className="home-product-image">
+                    <img src={product.image || 'https://via.placeholder.com/300x300?text=No+Image'} alt={product.name} loading="lazy" />
+                    <div className="home-product-overlay">
+                      <span className="home-product-quick"><FiShoppingCart /> Quick View</span>
+                    </div>
+                    {product.stock < 5 && product.stock > 0 && (
+                      <span className="home-product-badge urgency"><FiClock /> Only {product.stock} left</span>
+                    )}
+                  </div>
+                  <div className="home-product-info">
+                    <span className="home-product-category">{product.category}</span>
+                    <h3 className="home-product-name">{product.name}</h3>
+                    <div className="home-product-meta">
+                      <div className="home-product-rating">
+                        <FiStar className="star-filled" />
+                        <span>{product.rating?.toFixed(1) || '0.0'}</span>
+                        <span className="home-product-reviews">({product.numReviews || 0})</span>
+                      </div>
+                      <span className="home-product-price">${product.price?.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Features ──────────────────────────────────────── */}
       <section className="home-features">
         <div className="home-section-inner">
-          <div className="home-features-grid">
+          <div className="home-features-grid stagger-children reveal">
             {features.map(({ icon, title, desc }) => (
               <div key={title} className="home-feature-card">
                 <div className="home-feature-icon">{icon}</div>
@@ -93,11 +173,13 @@ const HomePage = () => {
       {/* ── Categories ────────────────────────────────────── */}
       <section className="home-categories">
         <div className="home-section-inner">
-          <div className="home-section-header">
-            <h2 className="home-section-title">Shop by Category</h2>
+          <div className="home-section-header reveal">
+            <div>
+              <h2 className="home-section-title">Shop by Category</h2>
+            </div>
             <Link to={ROUTES.PRODUCTS} className="home-see-all">See all <FiArrowRight /></Link>
           </div>
-          <div className="home-categories-grid">
+          <div className="home-categories-grid stagger-children reveal">
             {categories.map(({ label, emoji, color }) => (
               <Link
                 key={label}
@@ -115,8 +197,9 @@ const HomePage = () => {
 
       {/* ── CTA ───────────────────────────────────────────── */}
       {!isAuthenticated && (
-        <section className="home-cta">
+        <section className="home-cta reveal-scale">
           <div className="home-cta-inner">
+            <span className="home-cta-badge"><FiHeart /> Join our community</span>
             <h2 className="home-cta-title">Ready to start shopping?</h2>
             <p className="home-cta-desc">Join 2 million+ happy customers today.</p>
             <Link to={ROUTES.REGISTER} className="home-btn-primary large">

@@ -12,6 +12,7 @@ import {
   FiArrowLeft, FiShoppingCart, FiStar, FiPackage,
   FiTruck, FiShield, FiRefreshCw, FiMinus, FiPlus, FiCheck,
 } from 'react-icons/fi';
+import useScrollReveal from '../../utils/useScrollReveal';
 import './ProductDetailPage.css';
 
 const ProductDetailPage = () => {
@@ -22,6 +23,8 @@ const ProductDetailPage = () => {
   const { isAuthenticated, user } = useSelector((s) => s.auth);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+
+  useScrollReveal();
 
   useEffect(() => {
     const fetchProduct = async () => {

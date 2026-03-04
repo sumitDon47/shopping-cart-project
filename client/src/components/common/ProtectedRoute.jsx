@@ -41,7 +41,7 @@ export const PublicRoute = ({ children }) => {
 
   if (isAuthenticated) {
     const destination =
-      user?.role === 'admin' ? ROUTES.ADMIN_DASHBOARD : ROUTES.PROFILE;
+      user?.role === 'admin' ? ROUTES.ADMIN_DASHBOARD : ROUTES.HOME;
     return <Navigate to={destination} replace />;
   }
 

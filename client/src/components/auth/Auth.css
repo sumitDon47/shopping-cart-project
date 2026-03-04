@@ -694,7 +694,7 @@
 
 .auth-divider span {
   position: relative;
-  background: var(--bg-elevated);
+  background: var(--auth-dark-2);
   padding: 0 1rem;
   font-size: 0.875rem;
   color: var(--auth-text-3);

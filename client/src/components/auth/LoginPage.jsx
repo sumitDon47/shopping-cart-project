@@ -24,7 +24,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     setMounted(true);
-    if (isAuthenticated) navigate('/profile');
+    if (isAuthenticated) navigate('/');
   }, [isAuthenticated, navigate]);
 
   const validate = () => {
@@ -51,7 +51,7 @@ const LoginPage = () => {
       dispatch(loginSuccess(res.data));
       dispatch(fetchCart());
       toast.success(`Welcome back, ${res.data.user.name}! 🎉`);
-      navigate(res.data.user.role === 'admin' ? '/admin/dashboard' : '/profile');
+      navigate(res.data.user.role === 'admin' ? '/admin/dashboard' : '/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed';
       dispatch(loginFailure(msg));

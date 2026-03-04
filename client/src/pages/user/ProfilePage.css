@@ -6,6 +6,7 @@
 .profile-sidebar {
   background:var(--bg-card); border:1px solid var(--border);
   border-radius:20px; overflow:hidden; position:sticky; top:5.5rem;
+  box-shadow:var(--card-shadow);
 }
 
 .profile-sidebar-avatar { padding:2rem; text-align:center; border-bottom:1px solid var(--border); }

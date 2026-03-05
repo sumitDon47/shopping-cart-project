@@ -4,6 +4,29 @@ import { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import './Profile.css';
 
+/* Extracted outside so React doesn't re-mount on every parent render */
+const PasswordField = ({ name, label, showKey, value, show, errors, onChange, onToggle }) => (
+  <div className={`pe-field ${errors[name] ? 'has-error' : ''}`}>
+    <label className="pe-label">{label}</label>
+    <div className="pe-input-wrap">
+      <span className="pe-icon"><FiLock /></span>
+      <input
+        type={show[showKey] ? 'text' : 'password'}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="pe-input"
+        placeholder="••••••••"
+        autoComplete="off"
+      />
+      <button type="button" className="pe-toggle" onMouseDown={(e) => e.preventDefault()} onClick={() => onToggle(showKey)}>
+        {show[showKey] ? <FiEyeOff /> : <FiEye />}
+      </button>
+    </div>
+    {errors[name] && <span className="pe-error"><FiAlertCircle />{errors[name]}</span>}
+  </div>
+);
+
 const ChangePassword = ({ onSuccess }) => {
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [show, setShow] = useState({ current: false, newPass: false, confirm: false });
@@ -62,26 +85,7 @@ const ChangePassword = ({ onSuccess }) => {
   const strengthColors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981'];
   const strengthLabels = ['', 'Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
 
-  const PasswordField = ({ name, label, showKey, value }) => (
-    <div className={`pe-field ${errors[name] ? 'has-error' : ''}`}>
-      <label className="pe-label">{label}</label>
-      <div className="pe-input-wrap">
-        <span className="pe-icon"><FiLock /></span>
-        <input
-          type={show[showKey] ? 'text' : 'password'}
-          name={name}
-          value={value}
-          onChange={handleChange}
-          className="pe-input"
-          placeholder="••••••••"
-        />
-        <button type="button" className="pe-toggle" onClick={() => setShow(p => ({ ...p, [showKey]: !p[showKey] }))}>
-          {show[showKey] ? <FiEyeOff /> : <FiEye />}
-        </button>
-      </div>
-      {errors[name] && <span className="pe-error"><FiAlertCircle />{errors[name]}</span>}
-    </div>
-  );
+  const toggleShow = (key) => setShow(p => ({ ...p, [key]: !p[key] }));
 
   return (
     <div className="pe-card fade-in-up">
@@ -96,8 +100,8 @@ const ChangePassword = ({ onSuccess }) => {
       <form onSubmit={handleSubmit} noValidate>
         <div className="pe-section">
           <div className="pe-grid cp-grid">
-            <PasswordField name="currentPassword" label="Current Password" showKey="current" value={form.currentPassword} />
-            <PasswordField name="newPassword"     label="New Password"     showKey="newPass" value={form.newPassword} />
+            <PasswordField name="currentPassword" label="Current Password" showKey="current" value={form.currentPassword} show={show} errors={errors} onChange={handleChange} onToggle={toggleShow} />
+            <PasswordField name="newPassword"     label="New Password"     showKey="newPass" value={form.newPassword}     show={show} errors={errors} onChange={handleChange} onToggle={toggleShow} />
 
             {/* Strength meter */}
             {form.newPassword && (
@@ -125,7 +129,7 @@ const ChangePassword = ({ onSuccess }) => {
               ))}
             </div>
 
-            <PasswordField name="confirmPassword" label="Confirm New Password" showKey="confirm" value={form.confirmPassword} />
+            <PasswordField name="confirmPassword" label="Confirm New Password" showKey="confirm" value={form.confirmPassword} show={show} errors={errors} onChange={handleChange} onToggle={toggleShow} />
           </div>
         </div>
 

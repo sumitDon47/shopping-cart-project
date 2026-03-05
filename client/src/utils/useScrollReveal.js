@@ -1,37 +1,68 @@
 import { useEffect } from 'react';
 
 /**
- * Watches all elements with class "reveal", "reveal-left", or "reveal-scale"
- * and adds "visible" when they scroll into the viewport.
+ * Watches all elements with class "reveal", "reveal-left", "reveal-scale",
+ * or "stagger-children" and adds "visible" when they scroll into the viewport.
  *
- * Usage: call useScrollReveal() in any page component.
- * Elements with those classes will automatically animate in.
+ * Also uses a MutationObserver to pick up elements rendered after the initial
+ * mount (e.g. product cards loaded via API).
  */
+const SELECTORS = '.reveal, .reveal-left, .reveal-scale, .stagger-children';
+
 const useScrollReveal = () => {
   useEffect(() => {
-    const selectors = '.reveal, .reveal-left, .reveal-scale, .stagger-children';
-    const elements = document.querySelectorAll(selectors);
-
-    if (!elements.length) return;
+    const observed = new Set();
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('visible');
-            observer.unobserve(entry.target); // only animate once
+            observer.unobserve(entry.target);
           }
         });
       },
-      {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px',
-      }
+      { threshold: 0.1, rootMargin: '0px 0px -30px 0px' }
     );
 
-    elements.forEach((el) => observer.observe(el));
+    /** Observe an element if we haven't already */
+    const observe = (el) => {
+      if (!observed.has(el)) {
+        observed.add(el);
+        observer.observe(el);
+      }
+    };
 
-    return () => observer.disconnect();
+    /** Scan DOM and observe every matching element */
+    const scanAndObserve = () => {
+      document.querySelectorAll(SELECTORS).forEach(observe);
+    };
+
+    // Initial scan
+    scanAndObserve();
+
+    // Watch for dynamically added elements (e.g. trending products from API)
+    const mutationObs = new MutationObserver((mutations) => {
+      let hasNew = false;
+      for (const m of mutations) {
+        if (m.addedNodes.length) { hasNew = true; break; }
+      }
+      if (hasNew) scanAndObserve();
+    });
+    mutationObs.observe(document.body, { childList: true, subtree: true });
+
+    // Safety fallback — force-reveal everything after 1.5s
+    const fallback = setTimeout(() => {
+      document.querySelectorAll(SELECTORS).forEach((el) => {
+        el.classList.add('visible');
+      });
+    }, 1500);
+
+    return () => {
+      clearTimeout(fallback);
+      observer.disconnect();
+      mutationObs.disconnect();
+    };
   }, []);
 };
 

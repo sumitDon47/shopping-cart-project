@@ -9,9 +9,9 @@
   flex-direction: column;
   font-family: var(--font-body);
 }
-.profile-main { flex: 1; padding: 5.5rem 2rem 3rem; }
+.profile-main { flex: 1; padding: 6rem 2rem 3.5rem; }
 .profile-inner {
-  max-width: 1050px;
+  max-width: 1080px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -23,7 +23,7 @@
 .profile-sidebar {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   position: sticky;
   top: 5rem;
@@ -38,7 +38,7 @@
   width: 72px; height: 72px;
   margin: 0 auto 0.875rem;
   background: var(--accent-gradient);
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.75rem;
   font-weight: 800;
@@ -82,7 +82,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.7rem 0.875rem;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: none;
   border: none;
   font-family: var(--font-body);
@@ -109,9 +109,9 @@
 
 /* ── Responsive ────────────────────────── */
 @media (max-width: 768px) {
-  .profile-main { padding: 5rem 1rem 2rem; }
+  .profile-main { padding: 5.5rem 1rem 2.5rem; }
   .profile-inner { grid-template-columns: 1fr; }
-  .profile-sidebar { position: static; border-radius: 14px; }
+  .profile-sidebar { position: static; border-radius: var(--radius-lg); }
   .profile-sidebar-nav { flex-direction: row; overflow-x: auto; padding: 0.4rem; gap: 0.2rem; }
   .profile-nav-btn { white-space: nowrap; font-size: 0.775rem; }
 }

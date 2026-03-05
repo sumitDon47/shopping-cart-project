@@ -16,7 +16,7 @@
 .khalti-cb-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-xl);
   padding: 3rem 2.5rem;
   text-align: center;
   max-width: 480px;
@@ -73,16 +73,17 @@
   background: var(--accent-gradient);
   color: white;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
 }
 
 .khalti-cb-btn:hover {
-  transform: translateY(-1px);
+  background: var(--accent-gradient-hover);
+  transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
 }
 

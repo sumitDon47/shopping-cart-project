@@ -9,8 +9,8 @@
   flex-direction: column;
   font-family: var(--font-body);
 }
-.checkout-main { flex: 1; padding: 5.5rem 2rem 3rem; }
-.checkout-inner { max-width: 1050px; margin: 0 auto; }
+.checkout-main { flex: 1; padding: 6rem 2rem 3.5rem; }
+.checkout-inner { max-width: 1080px; margin: 0 auto; }
 
 /* ── Empty ──────────────────────────────── */
 .checkout-empty {
@@ -52,27 +52,27 @@
 }
 .co-back:hover { color: var(--text-primary); background: var(--bg-hover); }
 .co-title {
-  font-size: 1.75rem;
+  font-size: 1.875rem;
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: 1.75rem;
-  letter-spacing: -0.02em;
+  margin-bottom: 2rem;
+  letter-spacing: -0.03em;
 }
 
 .co-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 1.5rem;
+  grid-template-columns: 1fr 380px;
+  gap: 1.75rem;
   align-items: start;
 }
 
 /* ── Form ──────────────────────────────── */
 .co-form-section { display: flex; flex-direction: column; gap: 1.25rem; }
 .co-card {
-  padding: 1.75rem;
+  padding: 2rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--card-shadow);
 }
 .co-card h2 {
@@ -145,10 +145,10 @@
 .co-summary {
   position: sticky;
   top: 5.5rem;
-  padding: 1.75rem;
+  padding: 2rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--card-shadow);
 }
 .co-summary h2 {
@@ -207,22 +207,23 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.875rem;
+  padding: 0.9375rem;
   background: var(--accent-gradient);
   border: none;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   color: white;
   font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
   margin-top: 1.25rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: var(--shadow-accent);
 }
 .co-place-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.4);
+  background: var(--accent-gradient-hover);
 }
 .co-place-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -237,7 +238,7 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 768px) {
-  .checkout-main { padding: 5rem 1rem 2rem; }
+  .checkout-main { padding: 5.5rem 1rem 2.5rem; }
   .co-layout { grid-template-columns: 1fr; }
   .co-summary { position: static; }
   .co-row { grid-template-columns: 1fr; }

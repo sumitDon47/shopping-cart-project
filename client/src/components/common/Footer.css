@@ -57,13 +57,13 @@
   padding: 0.7rem 0.875rem 0.7rem 2.5rem;
   background: var(--bg-input);
   border: 1px solid var(--border-input);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.85rem;
   width: 260px;
   outline: none;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(.4,0,.2,1);
 }
 .footer-newsletter-input:focus {
   border-color: var(--accent);
@@ -77,16 +77,17 @@
   padding: 0.7rem 1.25rem;
   background: var(--accent-gradient);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: white;
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
   box-shadow: var(--shadow-accent);
 }
 .footer-newsletter-btn:hover {
+  background: var(--accent-gradient-hover);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(99,102,241,0.35);
 }
@@ -127,7 +128,7 @@
 .footer-logo {
   width: 34px; height: 34px;
   background: var(--accent-gradient);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
   color: white; font-size: 0.95rem;
   box-shadow: var(--shadow-accent);
@@ -150,7 +151,7 @@
   width: 36px; height: 36px;
   background: var(--bg-hover);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
   color: var(--text-muted);
   font-size: 0.95rem;

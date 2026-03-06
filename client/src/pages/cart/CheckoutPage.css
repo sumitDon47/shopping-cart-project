@@ -238,7 +238,7 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 768px) {
-  .checkout-main { padding: 5.5rem 1rem 2.5rem; }
+  .checkout-main { padding: 4.25rem 1rem 2.5rem; }
   .co-layout { grid-template-columns: 1fr; }
   .co-summary { position: static; }
   .co-row { grid-template-columns: 1fr; }

@@ -24,7 +24,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Don't redirect for public auth endpoints — let the component handle those errors
       const url = error.config?.url || '';
-      const publicAuthPaths = ['/auth/login', '/auth/send-otp', '/auth/verify-otp', '/auth/resend-otp', '/auth/forgot-password', '/auth/reset-password'];
+      const publicAuthPaths = ['/auth/login', '/auth/send-otp', '/auth/verify-otp', '/auth/resend-otp', '/auth/forgot-password', '/auth/reset-password', '/auth/google'];
       const isPublicAuth = publicAuthPaths.some((p) => url.endsWith(p));
 
       if (!isPublicAuth) {
@@ -44,6 +44,8 @@ export const authAPI = {
   verifyOTP:      (data) => api.post('/auth/verify-otp', data),
   resendOTP:      (data) => api.post('/auth/resend-otp', data),
   login:          (data) => api.post('/auth/login', data),
+  google:         (data) => api.post('/auth/google', data),
+  googleLink:     (data) => api.put('/auth/google-link', data),
   getMe:          ()     => api.get('/auth/me'),
   updateProfile:  (data) => api.put('/auth/profile', data),
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
@@ -81,6 +83,7 @@ export const cartAPI = {
 // ── Orders ────────────────────────────────────────────────
 export const orderAPI = {
   create:      (data) => api.post('/orders', data),
+  buyNow:      (data) => api.post('/orders/buy-now', data),
   getMyOrders: ()     => api.get('/orders/myorders'),
   getById:     (id)   => api.get(`/orders/${id}`),
   getAll:      ()     => api.get('/orders'),

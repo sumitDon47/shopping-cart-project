@@ -230,6 +230,30 @@
 }
 
 /* ── Social Buttons ───────────────────── */
+.auth-modal-google-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.75rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.auth-modal-google-error svg {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+[data-theme='dark'] .auth-modal-google-error {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #f87171;
+}
+
 .auth-modal-social {
   display: flex;
   justify-content: center;
@@ -417,6 +441,25 @@
   padding: 0.5rem;
 }
 .auth-modal-back-btn:hover {
+  color: var(--text-primary, #111);
+}
+
+/* ── Skip button (Step 4) ─────────────── */
+.auth-modal-skip-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted, #999);
+  font-size: 0.85rem;
+  font-family: inherit;
+  padding: 0.5rem;
+  transition: color 0.2s;
+}
+.auth-modal-skip-btn:hover {
   color: var(--text-primary, #111);
 }
 

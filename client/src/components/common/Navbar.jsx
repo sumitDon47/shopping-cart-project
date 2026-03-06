@@ -12,6 +12,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import toast from 'react-hot-toast';
 import AuthModal from '../auth/AuthModal';
+import MiniCartDrawer from './MiniCartDrawer';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -25,8 +26,10 @@ const Navbar = () => {
   const [scrolled,     setScrolled]     = useState(false);
   const [navHidden,    setNavHidden]    = useState(false);
   const [mobileOpen,   setMobileOpen]   = useState(false);
+  const [profileOpen,  setProfileOpen]  = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [authModal,    setAuthModal]    = useState({ open: false, tab: 'login' });
+  const [cartDrawer,   setCartDrawer]   = useState(false);
   const dropdownRef = useRef(null);
   const lastScrollY = useRef(0);
 
@@ -37,7 +40,7 @@ const Navbar = () => {
       setScrolled(currentY > 20);
 
       // Only hide after scrolling past the navbar height
-      if (currentY > 68) {
+      if (currentY > 52) {
         setNavHidden(currentY > lastScrollY.current);
       } else {
         setNavHidden(false);
@@ -59,8 +62,8 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  /* close mobile menu on route change */
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  /* close mobile menus on route change */
+  useEffect(() => { setMobileOpen(false); setProfileOpen(false); }, [location.pathname]);
 
   /* listen for auth-modal open events from other components */
   useEffect(() => {
@@ -69,6 +72,13 @@ const Navbar = () => {
     };
     window.addEventListener('open-auth-modal', handler);
     return () => window.removeEventListener('open-auth-modal', handler);
+  }, []);
+
+  /* listen for mini-cart open events (triggered after add-to-cart) */
+  useEffect(() => {
+    const handler = () => setCartDrawer(true);
+    window.addEventListener('open-mini-cart', handler);
+    return () => window.removeEventListener('open-mini-cart', handler);
   }, []);
 
   const handleLogout = () => {
@@ -90,14 +100,22 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''} ${navHidden && !mobileOpen ? 'nav-hidden' : ''}`}>
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''} ${navHidden && !mobileOpen && !profileOpen ? 'nav-hidden' : ''}`}>
       <div className="navbar-inner">
 
-        {/* ── Brand ──────────────────────────────────── */}
-        <Link to={ROUTES.HOME} className="navbar-brand">
+        {/* ── Brand (desktop = link, mobile = profile toggle) ── */}
+        <Link to={ROUTES.HOME} className="navbar-brand navbar-brand-desktop">
           <span className="navbar-logo-icon"><FiShoppingBag /></span>
           <span className="navbar-logo-text">ShopCart</span>
         </Link>
+        <button
+          className="navbar-brand navbar-brand-mobile"
+          onClick={() => { setProfileOpen(!profileOpen); setMobileOpen(false); }}
+          aria-label="Toggle profile menu"
+        >
+          <span className="navbar-logo-icon"><FiShoppingBag /></span>
+          <span className="navbar-logo-text">ShopCart</span>
+        </button>
 
         {/* ── Desktop Nav Links ───────────────────────── */}
         <ul className="navbar-links">
@@ -117,10 +135,10 @@ const Navbar = () => {
             <>
               {/* Cart — hidden for admin */}
               {user?.role !== 'admin' && (
-                <Link to={ROUTES.CART} className="navbar-icon-btn" aria-label="Cart">
+                <button onClick={() => setCartDrawer(true)} className="navbar-icon-btn" aria-label="Cart">
                   <FiShoppingCart />
                   {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
-                </Link>
+                </button>
               )}
 
               {/* User Dropdown */}
@@ -130,7 +148,11 @@ const Navbar = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
                   <div className="navbar-avatar">
-                    {user?.name?.[0]?.toUpperCase() || 'U'}
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt="" className="navbar-avatar-img" referrerPolicy="no-referrer" />
+                    ) : (
+                      user?.name?.[0]?.toUpperCase() || 'U'
+                    )}
                   </div>
                   <span className="navbar-user-name">{user?.name?.split(' ')[0]}</span>
                   <FiChevronDown className={`navbar-chevron ${dropdownOpen ? 'open' : ''}`} />
@@ -203,14 +225,14 @@ const Navbar = () => {
         {/* ── Mobile Hamburger ────────────────────────── */}
         <button
           className="navbar-hamburger"
-          onClick={() => setMobileOpen(!mobileOpen)}
+          onClick={() => { setMobileOpen(!mobileOpen); setProfileOpen(false); }}
           aria-label="Toggle menu"
         >
           {mobileOpen ? <FiX /> : <FiMenu />}
         </button>
       </div>
 
-      {/* ── Mobile Menu ─────────────────────────────── */}
+      {/* ── Mobile Nav Menu (hamburger) ─────────────── */}
       <div className={`navbar-mobile ${mobileOpen ? 'open' : ''}`}>
         {navLinks.map(({ label, path }) => (
           <Link
@@ -222,36 +244,9 @@ const Navbar = () => {
           </Link>
         ))}
 
-        <div className="navbar-mobile-divider" />
-
-        {isAuthenticated ? (
+        {!isAuthenticated && (
           <>
-            <div className="navbar-mobile-user">
-              <div className="navbar-avatar large">{user?.name?.[0]?.toUpperCase()}</div>
-              <div>
-                <p className="navbar-mobile-user-name">{user?.name}</p>
-                <p className="navbar-mobile-user-email">{user?.email}</p>
-              </div>
-            </div>
-            <Link to={ROUTES.PROFILE} className="navbar-mobile-link"><FiUser /> Profile</Link>
-            {user?.role !== 'admin' && (
-              <Link to={ROUTES.CART}    className="navbar-mobile-link"><FiShoppingCart /> Cart</Link>
-            )}
-            {user?.role === 'admin' && (
-              <Link to={ROUTES.ADMIN_DASHBOARD} className="navbar-mobile-link"><FiSettings /> Admin</Link>
-            )}
-            <button className="navbar-mobile-logout" onClick={handleLogout}>
-              <FiLogOut /> Sign Out
-            </button>
-            <div className="navbar-mobile-link theme-row" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
-              {isDark ? <FiMoon /> : <FiSun />} Theme
-              <div className={`navbar-theme-switch ${isDark ? 'dark' : ''}`}>
-                <div className="navbar-theme-switch-knob" />
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
+            <div className="navbar-mobile-divider" />
             <div className="navbar-mobile-link theme-row" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
               {isDark ? <FiMoon /> : <FiSun />} Theme
               <div className={`navbar-theme-switch ${isDark ? 'dark' : ''}`}>
@@ -264,11 +259,66 @@ const Navbar = () => {
         )}
       </div>
 
+      {/* ── Mobile Profile Panel (logo click) ──────── */}
+      <div className={`navbar-mobile navbar-mobile-profile ${profileOpen ? 'open' : ''}`}>
+        {isAuthenticated ? (
+          <>
+            <div className="navbar-mobile-user">
+              <div className="navbar-avatar large">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="" className="navbar-avatar-img" referrerPolicy="no-referrer" />
+                ) : (
+                  user?.name?.[0]?.toUpperCase()
+                )}
+              </div>
+              <div>
+                <p className="navbar-mobile-user-name">{user?.name}</p>
+                <p className="navbar-mobile-user-email">{user?.email}</p>
+              </div>
+            </div>
+            <Link to={ROUTES.PROFILE} className="navbar-mobile-link"><FiUser /> Profile</Link>
+            {user?.role !== 'admin' && (
+              <button onClick={() => { setProfileOpen(false); setCartDrawer(true); }} className="navbar-mobile-link" style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%' }}><FiShoppingCart /> Cart</button>
+            )}
+            {user?.role === 'admin' && (
+              <Link to={ROUTES.ADMIN_DASHBOARD} className="navbar-mobile-link"><FiSettings /> Admin</Link>
+            )}
+            <div className="navbar-mobile-divider" />
+            <div className="navbar-mobile-link theme-row" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
+              {isDark ? <FiMoon /> : <FiSun />} Theme
+              <div className={`navbar-theme-switch ${isDark ? 'dark' : ''}`}>
+                <div className="navbar-theme-switch-knob" />
+              </div>
+            </div>
+            <button className="navbar-mobile-logout" onClick={handleLogout}>
+              <FiLogOut /> Sign Out
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="navbar-mobile-link theme-row" onClick={toggleTheme} style={{ cursor: 'pointer' }}>
+              {isDark ? <FiMoon /> : <FiSun />} Theme
+              <div className={`navbar-theme-switch ${isDark ? 'dark' : ''}`}>
+                <div className="navbar-theme-switch-knob" />
+              </div>
+            </div>
+            <button onClick={() => { setProfileOpen(false); setAuthModal({ open: true, tab: 'login' }); }} className="navbar-mobile-link" style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%' }}>Login</button>
+            <button onClick={() => { setProfileOpen(false); setAuthModal({ open: true, tab: 'signup' }); }} className="navbar-mobile-btn" style={{ border: 'none', cursor: 'pointer', font: 'inherit' }}>Sign Up</button>
+          </>
+        )}
+      </div>
+
       {/* Auth Modal */}
       <AuthModal
         isOpen={authModal.open}
         onClose={() => setAuthModal({ open: false, tab: 'login' })}
         initialTab={authModal.tab}
+      />
+
+      {/* Mini Cart Drawer */}
+      <MiniCartDrawer
+        isOpen={cartDrawer}
+        onClose={() => setCartDrawer(false)}
       />
     </nav>
   );

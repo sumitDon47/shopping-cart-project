@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createOrder,
+  buyNow,
   getMyOrders,
   getOrderById,
   getAllOrders,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(protect);
 
 router.post("/",        createOrder);
+router.post("/buy-now", buyNow);
 router.get("/myorders", getMyOrders);
 
 // Admin

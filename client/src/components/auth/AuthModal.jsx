@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginStart, loginSuccess, loginFailure } from '../../redux/slices/authSlice';
+import { loginStart, loginSuccess, loginFailure, updateUser } from '../../redux/slices/authSlice';
 import { fetchCart } from '../../redux/slices/cartSlice';
 import { authAPI } from '../../services/api';
+import { GOOGLE_CLIENT_ID } from '../../utils/constants';
 import toast from 'react-hot-toast';
 import {
   FiX, FiMail, FiLock, FiEye, FiEyeOff, FiUser,
@@ -36,6 +37,7 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
   const [loginData, setLoginData]       = useState({ email: '', password: '' });
   const [showLoginPw, setShowLoginPw]   = useState(false);
   const [loginErrors, setLoginErrors]   = useState({});
+  const [googleError, setGoogleError]   = useState('');
 
   // ── Sign-up state (all 3 steps) ──
   const [signupStep, setSignupStep]       = useState(1); // 1=name/email, 2=OTP, 3=password
@@ -91,6 +93,8 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
       setPwErrors({});
       setOtpCode('');
       setOtpSendCount(0);
+      setGoogleAvatar('');
+      setGoogleError('');
     }
   }, [isOpen]);
 
@@ -251,15 +255,24 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
     if (!validatePw()) return;
     setPwLoading(true);
     try {
-      const res = await authAPI.verifyOTP({
+      const payload = {
         email: signupData.email,
         otp: otpCode,
         password: pwData.password,
-      });
+      };
+      if (googleAvatar) payload.avatar = googleAvatar;
+
+      const res = await authAPI.verifyOTP(payload);
       dispatch(loginSuccess(res.data));
       dispatch(fetchCart());
       toast.success('Account created successfully! 🎉');
-      onClose();
+
+      // If manual signup (no Google avatar), offer to import profile photo
+      if (!googleAvatar) {
+        setSignupStep(4);
+      } else {
+        onClose();
+      }
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed';
       toast.error(msg);
@@ -272,9 +285,91 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
     }
   };
 
-  /* ── Google placeholder ──────────────── */
+  /* ── Google Sign-In (direct SDK — no hook effects) ── */
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleAvatar, setGoogleAvatar] = useState('');
+  const [linkLoading, setLinkLoading] = useState(false);
+
+  const launchGoogle = (callback) => {
+    const sdk = window?.google?.accounts?.oauth2;
+    if (!sdk || !GOOGLE_CLIENT_ID) {
+      toast.error('Google sign-in is not available');
+      return;
+    }
+    const client = sdk.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: 'openid profile email',
+      callback: (response) => {
+        if (response.error) { toast.error('Google sign-in was cancelled'); return; }
+        callback(response);
+      },
+      error_callback: () => toast.error('Google sign-in was cancelled'),
+    });
+    client.requestAccessToken();
+  };
+
   const handleGoogleSignIn = () => {
-    toast('Google Sign In is coming soon!', { icon: '🚧' });
+    setGoogleError('');
+    launchGoogle(async (tokenResponse) => {
+      setGoogleLoading(true);
+      try {
+        const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const userInfo = await userInfoRes.json();
+        if (userInfo.picture) setGoogleAvatar(userInfo.picture);
+
+        const res = await authAPI.google({
+          credential: tokenResponse.access_token,
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+          intent: tab,
+        });
+
+        if (res.data.action === 'login') {
+          dispatch(loginSuccess({ token: res.data.token, user: res.data.user }));
+          dispatch(fetchCart());
+          toast.success(`Welcome back, ${res.data.user.name}! 🎉`);
+          onClose();
+          if (res.data.user.role === 'admin') navigate('/admin/dashboard');
+        } else if (res.data.action === 'otp_sent') {
+          setSignupData({ name: res.data.name, email: res.data.email });
+          setOtpSendCount(1);
+          setTab('signup');
+          setSignupStep(2);
+          toast.success('OTP sent to your Gmail! Verify to complete sign-up 📧');
+        }
+      } catch (err) {
+        const msg = err.response?.data?.message || 'Google sign-in failed';
+        setGoogleError(msg);
+        toast.error(msg);
+      } finally {
+        setGoogleLoading(false);
+      }
+    });
+  };
+
+  const handleGoogleLink = () => {
+    launchGoogle(async (tokenResponse) => {
+      setLinkLoading(true);
+      try {
+        const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const userInfo = await userInfoRes.json();
+        if (userInfo.picture) {
+          await authAPI.googleLink({ avatar: userInfo.picture });
+          dispatch(updateUser({ avatar: userInfo.picture }));
+          toast.success('Profile photo imported! 📸');
+        }
+      } catch (err) {
+        toast.error('Failed to import profile photo');
+      } finally {
+        setLinkLoading(false);
+        onClose();
+      }
+    });
   };
 
   const handleBackdropClick = useCallback((e) => {
@@ -282,7 +377,7 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
   }, [onClose]);
 
   // Helper to switch to signup tab (resets step)
-  const switchToSignup = () => { setSignupStep(1); setTab('signup'); };
+  const switchToSignup = () => { setSignupStep(1); setTab('signup'); setGoogleError(''); };
 
   if (!isOpen) return null;
 
@@ -299,7 +394,7 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
           <div className="auth-modal-tabs">
             <button
               className={`auth-modal-tab ${tab === 'login' ? 'active' : ''}`}
-              onClick={() => setTab('login')}
+              onClick={() => { setTab('login'); setGoogleError(''); }}
             >
               Login
             </button>
@@ -352,12 +447,21 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
               <button type="button" onClick={switchToSignup}>Sign up</button>
             </div>
 
-            <div className="auth-modal-divider">Or, login with</div>
-            <div className="auth-modal-social">
-              <button type="button" className="auth-modal-social-btn" onClick={handleGoogleSignIn}>
-                <GoogleIcon /> Google
-              </button>
-            </div>
+            {GOOGLE_CLIENT_ID && (
+              <>
+                <div className="auth-modal-divider">Or, login with</div>
+                {googleError && (
+                  <div className="auth-modal-google-error">
+                    <FiAlertCircle /> {googleError}
+                  </div>
+                )}
+                <div className="auth-modal-social">
+                  <button type="button" className="auth-modal-social-btn" onClick={() => handleGoogleSignIn()} disabled={googleLoading}>
+                    {googleLoading ? <span className="auth-modal-loader" /> : <><GoogleIcon /> Google</>}
+                  </button>
+                </div>
+              </>
+            )}
           </form>
         )}
 
@@ -390,15 +494,24 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
 
             <div className="auth-modal-footer">
               Already have an account?{' '}
-              <button type="button" onClick={() => setTab('login')}>Log in Now</button>
+              <button type="button" onClick={() => { setTab('login'); setGoogleError(''); }}>Log in Now</button>
             </div>
 
-            <div className="auth-modal-divider">Or, sign up with</div>
-            <div className="auth-modal-social">
-              <button type="button" className="auth-modal-social-btn" onClick={handleGoogleSignIn}>
-                <GoogleIcon /> Google
-              </button>
-            </div>
+            {GOOGLE_CLIENT_ID && (
+              <>
+                <div className="auth-modal-divider">Or, sign up with</div>
+                {googleError && (
+                  <div className="auth-modal-google-error">
+                    <FiAlertCircle /> {googleError}
+                  </div>
+                )}
+                <div className="auth-modal-social">
+                  <button type="button" className="auth-modal-social-btn" onClick={() => handleGoogleSignIn()} disabled={googleLoading}>
+                    {googleLoading ? <span className="auth-modal-loader" /> : <><GoogleIcon /> Google</>}
+                  </button>
+                </div>
+              </>
+            )}
           </form>
         )}
 
@@ -507,6 +620,27 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'login' }) => {
               {pwLoading ? <span className="auth-modal-loader" /> : <>Create My Account <FiArrowRight /></>}
             </button>
           </form>
+        )}
+
+        {/* ════════ SIGN-UP STEP 4: Import Profile Photo (Manual signup only) ════════ */}
+        {tab === 'signup' && signupStep === 4 && (
+          <div>
+            <div className="auth-modal-step-header">
+              <FiCheckCircle className="auth-modal-step-icon" style={{ color: '#22c55e' }} />
+              <h3>Account Created!</h3>
+              <p>Would you like to add a profile photo from your Google account?</p>
+            </div>
+
+            <div className="auth-modal-social">
+              <button type="button" className="auth-modal-social-btn" onClick={() => handleGoogleLink()} disabled={linkLoading}>
+                {linkLoading ? <span className="auth-modal-loader" /> : <><GoogleIcon /> Import Google Photo</>}
+              </button>
+            </div>
+
+            <button type="button" className="auth-modal-skip-btn" onClick={onClose}>
+              Skip for now
+            </button>
+          </div>
         )}
       </div>
     </div>,

@@ -10,7 +10,7 @@ import Footer from '../../components/common/Footer';
 import useScrollReveal from '../../utils/useScrollReveal';
 import {
   FiSearch, FiFilter, FiGrid, FiList, FiShoppingCart,
-  FiStar, FiChevronLeft, FiChevronRight, FiX, FiPackage,
+  FiStar, FiChevronLeft, FiChevronRight, FiX, FiPackage, FiZap,
 } from 'react-icons/fi';
 import './ProductsPage.css';
 
@@ -77,11 +77,18 @@ const ProductsPage = () => {
       const res = await cartAPI.add({ productId, quantity: 1 });
       dispatch(setCart(res.data));
       toast.success('Added to cart!');
+      window.dispatchEvent(new CustomEvent('open-mini-cart'));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add to cart');
     } finally {
       setAddingToCart(null);
     }
+  };
+
+  const handleBuyNow = (product) => {
+    if (!isAuthenticated) { toast.error('Please login to purchase'); window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: 'login' })); return; }
+    if (user?.role === 'admin') { toast.error('Admin accounts cannot purchase products'); return; }
+    navigate('/checkout', { state: { buyNow: { product, quantity: 1 } } });
   };
 
   return (
@@ -197,17 +204,26 @@ const ProductsPage = () => {
                     <div className="product-card-footer">
                       <span className="product-card-price">${product.price.toFixed(2)}</span>
                       {user?.role !== 'admin' && (
-                        <button
-                          className="product-add-btn"
-                          onClick={() => handleAddToCart(product._id)}
-                          disabled={product.stock === 0 || addingToCart === product._id}
-                        >
-                          {addingToCart === product._id ? (
-                            <span className="btn-spinner" />
-                          ) : (
-                            <><FiShoppingCart /> Add</>
-                          )}
-                        </button>
+                        <div className="product-card-actions">
+                          <button
+                            className="product-add-btn"
+                            onClick={() => handleAddToCart(product._id)}
+                            disabled={product.stock === 0 || addingToCart === product._id}
+                          >
+                            {addingToCart === product._id ? (
+                              <span className="btn-spinner" />
+                            ) : (
+                              <><FiShoppingCart /> Add</>
+                            )}
+                          </button>
+                          <button
+                            className="product-buy-btn"
+                            onClick={() => handleBuyNow(product)}
+                            disabled={product.stock === 0}
+                          >
+                            <FiZap /> Buy
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>

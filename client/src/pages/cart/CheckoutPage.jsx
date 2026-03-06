@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { clearCart } from '../../redux/slices/cartSlice';
 import { orderAPI, paymentAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -17,9 +17,22 @@ const CheckoutPage = () => {
   useScrollReveal();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { items, totalPrice, totalItems } = useSelector((s) => s.cart);
   const { user } = useSelector((s) => s.auth);
   const [placing, setPlacing] = useState(false);
+
+  // Buy Now mode — product passed via location state
+  const buyNowData = location.state?.buyNow;
+  const isBuyNow = !!buyNowData;
+
+  const displayItems = isBuyNow
+    ? [{ _id: 'buynow', product: buyNowData.product, quantity: buyNowData.quantity }]
+    : items;
+  const displayTotal = isBuyNow
+    ? buyNowData.product.price * buyNowData.quantity
+    : totalPrice;
+  const displayCount = isBuyNow ? buyNowData.quantity : totalItems;
 
   // Admin cannot checkout — redirect to admin dashboard
   useEffect(() => {
@@ -39,9 +52,9 @@ const CheckoutPage = () => {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const shipping = totalPrice >= 50 ? 0 : 4.99;
-  const tax = totalPrice * 0.08;
-  const orderTotal = totalPrice + shipping + tax;
+  const shipping = displayTotal >= 50 ? 0 : 4.99;
+  const tax = displayTotal * 0.08;
+  const orderTotal = displayTotal + shipping + tax;
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -50,11 +63,23 @@ const CheckoutPage = () => {
     }
     setPlacing(true);
     try {
-      const res = await orderAPI.create({
-        shippingAddress: { street: form.street, city: form.city, state: form.state, zipCode: form.zipCode, country: form.country },
-        paymentMethod: form.paymentMethod,
-      });
-      dispatch(clearCart());
+      const shippingAddress = { street: form.street, city: form.city, state: form.state, zipCode: form.zipCode, country: form.country };
+      let res;
+
+      if (isBuyNow) {
+        res = await orderAPI.buyNow({
+          productId: buyNowData.product._id,
+          quantity: buyNowData.quantity,
+          shippingAddress,
+          paymentMethod: form.paymentMethod,
+        });
+      } else {
+        res = await orderAPI.create({
+          shippingAddress,
+          paymentMethod: form.paymentMethod,
+        });
+        dispatch(clearCart());
+      }
 
       // For Khalti payment, initiate payment and redirect
       if (form.paymentMethod === 'khalti') {
@@ -79,7 +104,7 @@ const CheckoutPage = () => {
     }
   };
 
-  if (!items || items.length === 0) {
+  if (!isBuyNow && (!items || items.length === 0)) {
     return (
       <div className="checkout-page">
         <Navbar />
@@ -101,7 +126,9 @@ const CheckoutPage = () => {
       <Navbar />
       <main className="checkout-main">
         <div className="checkout-inner">
-          <Link to="/cart" className="co-back"><FiArrowLeft /> Back to Cart</Link>
+          <Link to={isBuyNow ? `/products/${buyNowData.product._id}` : '/cart'} className="co-back">
+            <FiArrowLeft /> {isBuyNow ? 'Back to Product' : 'Back to Cart'}
+          </Link>
           <h1 className="co-title">Checkout</h1>
 
           <form className="co-layout" onSubmit={handlePlaceOrder}>
@@ -144,7 +171,7 @@ const CheckoutPage = () => {
             <div className="co-summary">
               <h2>Order Summary</h2>
               <div className="co-items-list">
-                {items.map((item) => (
+                {displayItems.map((item) => (
                   <div key={item._id} className="co-item">
                     <img src={item.product.image || 'https://via.placeholder.com/56'} alt={item.product.name} />
                     <div className="co-item-info">
@@ -156,7 +183,7 @@ const CheckoutPage = () => {
                 ))}
               </div>
               <div className="co-divider" />
-              <div className="co-sum-row"><span>Subtotal ({totalItems})</span><span>${totalPrice.toFixed(2)}</span></div>
+              <div className="co-sum-row"><span>Subtotal ({displayCount})</span><span>${displayTotal.toFixed(2)}</span></div>
               <div className="co-sum-row"><span>Shipping</span><span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span></div>
               <div className="co-sum-row"><span>Tax (8%)</span><span>${tax.toFixed(2)}</span></div>
               <div className="co-divider" />

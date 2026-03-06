@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     isEmailVerified: { type: Boolean, default: false },
+    avatar: { type: String, default: "" },
   },
   { timestamps: true }
 );

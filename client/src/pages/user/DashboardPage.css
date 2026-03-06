@@ -347,7 +347,7 @@
   .dashboard-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-  .dashboard-main { padding: 5.5rem 1rem 2.5rem; }
+  .dashboard-main { padding: 4.25rem 1rem 2.5rem; }
   .dashboard-stats { grid-template-columns: 1fr; }
   .dashboard-header { flex-direction: column; align-items: flex-start; }
   .dashboard-title { font-size: 1.375rem; }

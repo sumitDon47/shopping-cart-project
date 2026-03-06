@@ -14,6 +14,78 @@ const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
 /**
+ * POST /api/auth/google
+ * Receive Google user info → if user exists: login, if new: send OTP to Gmail
+ */
+export const googleAuth = async (req, res) => {
+  try {
+    const { email, name, intent } = req.body;
+    if (!email || !name) {
+      return res.status(400).json({ message: "Google profile info is required" });
+    }
+
+    // Validate email format
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ message: "Invalid email from Google" });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      // If user clicked Sign Up → block, they already have an account
+      if (intent === 'signup') {
+        return res.status(400).json({
+          message: "An account with this email already exists. Please login instead.",
+        });
+      }
+
+      // Login intent → log them in directly, update avatar if missing
+      if (!existingUser.avatar && req.body.picture) {
+        existingUser.avatar = req.body.picture;
+        await existingUser.save();
+      }
+      const token = signToken(existingUser._id);
+      return res.json({
+        action: "login",
+        token,
+        user: existingUser.toJSON(),
+      });
+    }
+
+    // No existing user
+    // If user clicked Login → block, no account found
+    if (intent === 'login') {
+      return res.status(400).json({
+        message: "No account found with this email. Please sign up first.",
+      });
+    }
+
+    // Signup intent → send OTP to their Gmail for verification
+    await Otp.deleteMany({ email: email.toLowerCase() });
+    const otp = generateOTP();
+    await Otp.create({
+      email: email.toLowerCase(),
+      name: name.trim() || "User",
+      otp,
+    });
+
+    await sendRegistrationOTP(email.toLowerCase(), name.trim() || "User", otp);
+    console.log(`📧 Google sign-up OTP sent to ${email}`);
+
+    res.status(200).json({
+      action: "otp_sent",
+      name: name.trim() || "User",
+      email: email.toLowerCase(),
+      picture: req.body.picture || "",
+      message: "OTP sent to your Gmail. Please verify to complete registration.",
+    });
+  } catch (err) {
+    console.error("googleAuth error:", err);
+    res.status(500).json({ message: "Google authentication failed" });
+  }
+};
+
+/**
  * POST /api/auth/send-otp
  * Send OTP to email for registration
  */
@@ -101,6 +173,7 @@ export const resendOTP = async (req, res) => {
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp, password } = req.body;
+    const avatar = req.body.avatar || '';
 
     if (!email || !otp || !password) {
       return res.status(400).json({ message: "Email, OTP, and password are required" });
@@ -133,6 +206,7 @@ export const verifyOTP = async (req, res) => {
       email: email.toLowerCase(),
       password,
       isEmailVerified: true,
+      ...(avatar && { avatar }),
     });
 
     // Remove OTP
@@ -211,6 +285,7 @@ export const updateProfile = async (req, res) => {
 
     if (name) user.name = name.trim();
     if (phone !== undefined) user.phone = phone;
+    if (req.body.avatar !== undefined) user.avatar = req.body.avatar;
     if (address) user.address = { ...user.address.toObject?.() || {}, ...address };
     if (password) {
       if (password.length < 6) {
@@ -314,6 +389,32 @@ export const resetPassword = async (req, res) => {
   } catch (err) {
     console.error("resetPassword error:", err);
     res.status(500).json({ message: "Failed to reset password" });
+  }
+};
+
+/**
+ * PUT /api/auth/google-link
+ * Link Google profile to existing account (import avatar)
+ */
+export const googleLink = async (req, res) => {
+  try {
+    const { avatar } = req.body;
+    if (!avatar) {
+      return res.status(400).json({ message: "Profile picture URL is required" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.avatar = avatar;
+    await user.save();
+
+    res.json({ data: user.toJSON() });
+  } catch (err) {
+    console.error("googleLink error:", err);
+    res.status(500).json({ message: "Failed to link Google profile" });
   }
 };
 

@@ -10,7 +10,7 @@ import Footer from '../../components/common/Footer';
 import { PageLoader } from '../../components/common/Loader';
 import {
   FiArrowLeft, FiShoppingCart, FiStar, FiPackage,
-  FiTruck, FiShield, FiRefreshCw, FiMinus, FiPlus, FiCheck,
+  FiTruck, FiShield, FiRefreshCw, FiMinus, FiPlus, FiCheck, FiZap,
 } from 'react-icons/fi';
 import useScrollReveal from '../../utils/useScrollReveal';
 import './ProductDetailPage.css';
@@ -49,6 +49,7 @@ const ProductDetailPage = () => {
       const res = await cartAPI.add({ productId: product._id, quantity });
       dispatch(setCart(res.data));
       toast.success('Added to cart!');
+      window.dispatchEvent(new CustomEvent('open-mini-cart'));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add to cart');
     } finally {
@@ -117,6 +118,16 @@ const ProductDetailPage = () => {
                   </div>
                   <button className="pd-add-to-cart" onClick={handleAddToCart} disabled={addingToCart}>
                     {addingToCart ? <span className="btn-spinner" /> : <><FiShoppingCart /> Add to Cart</>}
+                  </button>
+                  <button
+                    className="pd-buy-now"
+                    onClick={() => {
+                      if (!isAuthenticated) { toast.error('Please login to purchase'); window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: 'login' })); return; }
+                      if (user?.role === 'admin') { toast.error('Admin accounts cannot purchase products'); return; }
+                      navigate('/checkout', { state: { buyNow: { product, quantity } } });
+                    }}
+                  >
+                    <FiZap /> Buy Now
                   </button>
                 </div>
               )}

@@ -240,7 +240,7 @@
 }
 
 @media (max-width: 768px) {
-  .cart-main { padding: 5.5rem 1rem 2.5rem; }
+  .cart-main { padding: 4.25rem 1rem 2.5rem; }
   .cart-layout { grid-template-columns: 1fr; }
   .cart-item { flex-wrap: wrap; border-radius: 12px; }
   .cart-item-controls { width: 100%; justify-content: space-between; margin-top: 0.4rem; }

@@ -240,7 +240,7 @@
 
 /* ── Responsive ────────────────────────── */
 @media (max-width: 768px) {
-  .od-main { padding: 5.5rem 1rem 2.5rem; }
+  .od-main { padding: 4.25rem 1rem 2.5rem; }
   .od-grid { grid-template-columns: 1fr; }
   .od-side { position: static; }
   .od-progress { padding: 0.875rem; border-radius: 12px; }

@@ -89,6 +89,75 @@ export const createOrder = async (req, res) => {
 };
 
 /**
+ * POST /api/orders/buy-now
+ * Create order directly from a single product (bypasses cart)
+ */
+export const buyNow = async (req, res) => {
+  try {
+    const { productId, quantity = 1, shippingAddress, paymentMethod = "cod" } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+    if (
+      !shippingAddress ||
+      !shippingAddress.street ||
+      !shippingAddress.city ||
+      !shippingAddress.zipCode ||
+      !shippingAddress.country
+    ) {
+      return res.status(400).json({ message: "Complete shipping address is required" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if (product.stock < quantity) {
+      return res.status(400).json({
+        message: `Insufficient stock for ${product.name}. Only ${product.stock} available.`,
+      });
+    }
+
+    const orderItems = [
+      {
+        product: product._id,
+        name: product.name,
+        image: product.image,
+        price: product.price,
+        quantity,
+      },
+    ];
+
+    const itemsPrice = product.price * quantity;
+    const shippingPrice = itemsPrice > 50 ? 0 : 5.99;
+    const taxPrice = Number((itemsPrice * 0.08).toFixed(2));
+    const totalPrice = Number((itemsPrice + shippingPrice + taxPrice).toFixed(2));
+
+    const order = await Order.create({
+      user: req.user._id,
+      items: orderItems,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      shippingPrice,
+      taxPrice,
+      totalPrice,
+    });
+
+    // Decrease stock
+    await Product.findByIdAndUpdate(product._id, {
+      $inc: { stock: -quantity },
+    });
+
+    res.status(201).json(order);
+  } catch (err) {
+    console.error("buyNow error:", err);
+    res.status(500).json({ message: "Failed to place order" });
+  }
+};
+
+/**
  * GET /api/orders/myorders
  */
 export const getMyOrders = async (req, res) => {

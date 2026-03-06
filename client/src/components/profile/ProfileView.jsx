@@ -1,5 +1,10 @@
-import React from 'react';
-import { FiUser, FiMail, FiPhone, FiMapPin, FiEdit2, FiCheckCircle, FiClock } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { FiUser, FiMail, FiPhone, FiMapPin, FiEdit2, FiCheckCircle, FiClock, FiCamera } from 'react-icons/fi';
+import { authAPI } from '../../services/api';
+import { updateUser } from '../../redux/slices/authSlice';
+import { GOOGLE_CLIENT_ID } from '../../utils/constants';
+import toast from 'react-hot-toast';
 import './Profile.css';
 
 const Field = ({ icon, label, value }) => (
@@ -13,6 +18,42 @@ const Field = ({ icon, label, value }) => (
 );
 
 const ProfileView = ({ profile, onEdit }) => {
+  const dispatch = useDispatch();
+  const [linkLoading, setLinkLoading] = useState(false);
+
+  const handleGoogleLink = () => {
+    const sdk = window?.google?.accounts?.oauth2;
+    if (!sdk || !GOOGLE_CLIENT_ID) {
+      toast.error('Google sign-in is not available');
+      return;
+    }
+    const client = sdk.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: 'openid profile email',
+      callback: async (response) => {
+        if (response.error) { toast.error('Google link was cancelled'); return; }
+        setLinkLoading(true);
+        try {
+          const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${response.access_token}` },
+          });
+          const userInfo = await userInfoRes.json();
+          if (userInfo.picture) {
+            await authAPI.googleLink({ avatar: userInfo.picture });
+            dispatch(updateUser({ avatar: userInfo.picture }));
+            toast.success('Profile photo imported! 📸');
+          }
+        } catch (err) {
+          toast.error('Failed to import profile photo');
+        } finally {
+          setLinkLoading(false);
+        }
+      },
+      error_callback: () => toast.error('Google link was cancelled'),
+    });
+    client.requestAccessToken();
+  };
+
   if (!profile) return null;
 
   const address = profile.address
@@ -24,14 +65,30 @@ const ProfileView = ({ profile, onEdit }) => {
     <div className="pv-card fade-in-up">
       {/* Header */}
       <div className="pv-header">
-        <div>
-          <h2 className="pv-title">My Profile</h2>
-          <p className="pv-subtitle">Your personal information</p>
+        <div className="pv-header-left">
+          <div className="pv-avatar">
+            {profile.avatar ? (
+              <img src={profile.avatar} alt="" className="pv-avatar-img" referrerPolicy="no-referrer" />
+            ) : (
+              <span className="pv-avatar-initial">{profile.name?.[0]?.toUpperCase() || 'U'}</span>
+            )}
+          </div>
+          <div>
+            <h2 className="pv-title">My Profile</h2>
+            <p className="pv-subtitle">Your personal information</p>
+          </div>
         </div>
         <button onClick={onEdit} className="pv-edit-btn">
           <FiEdit2 /> Edit Profile
         </button>
       </div>
+
+      {/* Google profile photo link */}
+      {!profile.avatar && GOOGLE_CLIENT_ID && (
+        <button className="pv-google-link-btn" onClick={() => handleGoogleLink()} disabled={linkLoading}>
+          <FiCamera /> {linkLoading ? 'Importing...' : 'Import Profile Photo from Google'}
+        </button>
+      )}
 
       {/* Verification banner */}
       <div className={`pv-banner ${profile.isEmailVerified ? 'verified' : 'unverified'}`}>

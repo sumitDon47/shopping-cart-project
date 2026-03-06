@@ -67,7 +67,11 @@ const ProfilePage = () => {
             {/* Avatar */}
             <div className="profile-sidebar-avatar">
               <div className="profile-big-avatar">
-                {profile?.name?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase() || 'U'}
+                {(profile?.avatar || user?.avatar) ? (
+                  <img src={profile?.avatar || user?.avatar} alt="" className="profile-big-avatar-img" referrerPolicy="no-referrer" />
+                ) : (
+                  profile?.name?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase() || 'U'
+                )}
               </div>
               <h2 className="profile-sidebar-name">{profile?.name || user?.name}</h2>
               <p className="profile-sidebar-email">{profile?.email || user?.email}</p>

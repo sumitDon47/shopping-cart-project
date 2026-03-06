@@ -152,7 +152,7 @@
 
 /* ── Responsive ────────────────────────── */
 @media (max-width: 640px) {
-  .orders-main { padding: 5.5rem 1rem 2.5rem; }
+  .orders-main { padding: 4.25rem 1rem 2.5rem; }
   .orders-title { font-size: 1.5rem; }
   .order-card { border-radius: 12px; padding: 1rem 1.125rem; }
   .order-thumb { width: 36px; height: 36px; }

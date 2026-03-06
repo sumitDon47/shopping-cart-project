@@ -558,6 +558,11 @@
   background: rgba(99,102,241,0.08);
   color: #a5b4fc;
 }
+.otp-limit {
+  color: #ef4444;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
 
 /* ── Password Strength ─────────────────── */
 .password-strength {

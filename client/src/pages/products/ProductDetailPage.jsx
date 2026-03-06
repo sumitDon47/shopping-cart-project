@@ -42,7 +42,7 @@ const ProductDetailPage = () => {
   }, [id, dispatch]);
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) { toast.error('Please login to add items to cart'); navigate('/login'); return; }
+    if (!isAuthenticated) { toast.error('Please login to add items to cart'); window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: 'login' })); return; }
     if (user?.role === 'admin') { toast.error('Admin accounts cannot purchase products'); return; }
     setAddingToCart(true);
     try {

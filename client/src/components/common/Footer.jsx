@@ -11,7 +11,7 @@ const Footer = () => {
 
   const links = {
     Shop:    [{ label: 'All Products', path: ROUTES.PRODUCTS }, { label: 'Cart', path: ROUTES.CART }, { label: 'Orders', path: ROUTES.ORDERS }],
-    Account: [{ label: 'Profile',  path: ROUTES.PROFILE }, { label: 'Sign In', path: ROUTES.LOGIN }, { label: 'Register', path: ROUTES.REGISTER }],
+    Account: [{ label: 'Profile',  path: ROUTES.PROFILE }, { label: 'About', path: ROUTES.ABOUT }],
     Legal:   [{ label: 'Privacy Policy', path: '#' }, { label: 'Terms of Service', path: '#' }],
   };
 

@@ -22,10 +22,17 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-      toast.error('Session expired. Please login again.');
+      // Don't redirect for public auth endpoints — let the component handle those errors
+      const url = error.config?.url || '';
+      const publicAuthPaths = ['/auth/login', '/auth/send-otp', '/auth/verify-otp', '/auth/resend-otp', '/auth/forgot-password', '/auth/reset-password'];
+      const isPublicAuth = publicAuthPaths.some((p) => url.endsWith(p));
+
+      if (!isPublicAuth) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+        toast.error('Session expired. Please login again.');
+      }
     }
     return Promise.reject(error);
   }

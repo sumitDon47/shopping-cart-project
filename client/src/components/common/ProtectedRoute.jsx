@@ -16,9 +16,9 @@ const ProtectedRoute = ({ children, role }) => {
   const location = useLocation();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  // Not logged in → redirect to login, remember where they were
+  // Not logged in → redirect to home (auth modal handles login)
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
   // Logged in but wrong role → redirect to home

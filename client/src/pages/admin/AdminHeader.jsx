@@ -34,7 +34,7 @@ const AdminHeader = ({ title, gradient, subtitle }) => {
     dispatch(logout());
     dispatch(clearCart());
     toast.success('Logged out successfully');
-    navigate(ROUTES.LOGIN);
+    navigate(ROUTES.HOME);
   };
 
   return (

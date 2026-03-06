@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLoading, setProducts, setCategories, setError } from '../../redux/slices/productSlice';
 import { productAPI, cartAPI } from '../../services/api';
@@ -16,6 +16,7 @@ import './ProductsPage.css';
 
 const ProductsPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { products, categories, loading, page, pages, total } = useSelector((s) => s.products);
   const { isAuthenticated, user } = useSelector((s) => s.auth);
@@ -69,7 +70,7 @@ const ProductsPage = () => {
   };
 
   const handleAddToCart = async (productId) => {
-    if (!isAuthenticated) { toast.error('Please login to add items to cart'); return; }
+    if (!isAuthenticated) { toast.error('Please login to add items to cart'); window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: 'login' })); return; }
     if (user?.role === 'admin') { toast.error('Admin accounts cannot purchase products'); return; }
     setAddingToCart(productId);
     try {

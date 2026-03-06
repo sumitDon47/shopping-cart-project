@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fi';
 import { useTheme } from '../../context/ThemeContext';
 import toast from 'react-hot-toast';
+import AuthModal from '../auth/AuthModal';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -22,13 +23,27 @@ const Navbar = () => {
   const { theme, toggleTheme, isDark } = useTheme();
 
   const [scrolled,     setScrolled]     = useState(false);
+  const [navHidden,    setNavHidden]    = useState(false);
   const [mobileOpen,   setMobileOpen]   = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [authModal,    setAuthModal]    = useState({ open: false, tab: 'login' });
   const dropdownRef = useRef(null);
+  const lastScrollY = useRef(0);
 
-  /* scroll shadow */
+  /* scroll shadow + auto-hide/show */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      setScrolled(currentY > 20);
+
+      // Only hide after scrolling past the navbar height
+      if (currentY > 68) {
+        setNavHidden(currentY > lastScrollY.current);
+      } else {
+        setNavHidden(false);
+      }
+      lastScrollY.current = currentY;
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -47,11 +62,20 @@ const Navbar = () => {
   /* close mobile menu on route change */
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
+  /* listen for auth-modal open events from other components */
+  useEffect(() => {
+    const handler = (e) => {
+      setAuthModal({ open: true, tab: e.detail || 'login' });
+    };
+    window.addEventListener('open-auth-modal', handler);
+    return () => window.removeEventListener('open-auth-modal', handler);
+  }, []);
+
   const handleLogout = () => {
     dispatch(logout());
     dispatch(clearCart());
     toast.success('Logged out successfully');
-    navigate(ROUTES.LOGIN);
+    navigate(ROUTES.HOME);
   };
 
   const isActive = (path) => location.pathname === path;
@@ -60,12 +84,13 @@ const Navbar = () => {
 
   const navLinks = [
     ...(!isAdmin ? [{ label: 'Home', path: ROUTES.HOME }] : []),
+    ...(!isAdmin ? [{ label: 'About', path: ROUTES.ABOUT }] : []),
     ...(!isAdmin ? [{ label: 'Products', path: ROUTES.PRODUCTS }] : []),
     ...(!isAdmin ? (isAuthenticated ? [{ label: 'Orders', path: ROUTES.ORDERS }] : []) : []),
   ];
 
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''} ${navHidden && !mobileOpen ? 'nav-hidden' : ''}`}>
       <div className="navbar-inner">
 
         {/* ── Brand ──────────────────────────────────── */}
@@ -169,8 +194,8 @@ const Navbar = () => {
                   {isDark ? <FiMoon /> : <FiSun />}
                 </span>
               </button>
-              <Link to={ROUTES.LOGIN}    className="navbar-btn-ghost">Sign In</Link>
-              <Link to={ROUTES.REGISTER} className="navbar-btn-primary">Get Started</Link>
+              <button onClick={() => { setAuthModal({ open: true, tab: 'login' }); }} className="navbar-btn-ghost">Login</button>
+              <button onClick={() => { setAuthModal({ open: true, tab: 'signup' }); }} className="navbar-btn-primary">Sign Up</button>
             </>
           )}
         </div>
@@ -233,11 +258,18 @@ const Navbar = () => {
                 <div className="navbar-theme-switch-knob" />
               </div>
             </div>
-            <Link to={ROUTES.LOGIN}    className="navbar-mobile-link">Sign In</Link>
-            <Link to={ROUTES.REGISTER} className="navbar-mobile-btn">Get Started</Link>
+            <button onClick={() => { setMobileOpen(false); setAuthModal({ open: true, tab: 'login' }); }} className="navbar-mobile-link" style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%' }}>Login</button>
+            <button onClick={() => { setMobileOpen(false); setAuthModal({ open: true, tab: 'signup' }); }} className="navbar-mobile-btn" style={{ border: 'none', cursor: 'pointer', font: 'inherit' }}>Sign Up</button>
           </>
         )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModal.open}
+        onClose={() => setAuthModal({ open: false, tab: 'login' })}
+        initialTab={authModal.tab}
+      />
     </nav>
   );
 };

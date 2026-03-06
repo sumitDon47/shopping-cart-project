@@ -10,6 +10,7 @@ import ProtectedRoute, { PublicRoute } from './components/common/ProtectedRoute'
 
 // Pages
 import HomePage           from './pages/HomePage';
+import AboutPage          from './pages/AboutPage';
 import LoginPage          from './pages/auth/LoginPage';
 import RegisterPage       from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
@@ -76,6 +77,7 @@ function App() {
         <Routes>
           {/* ── Public pages ──────────────────────────────── */}
           <Route path={ROUTES.HOME} element={<HomePage />} />
+          <Route path={ROUTES.ABOUT} element={<AboutPage />} />
 
           {/* ── Auth pages (redirect if logged in) ────────── */}
           <Route path={ROUTES.LOGIN}    element={<PublicRoute><LoginPage    /></PublicRoute>} />

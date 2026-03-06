@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess, setRegistrationStep } from '../../redux/slices/authSlice';
 import { fetchCart } from '../../redux/slices/cartSlice';
@@ -143,6 +143,7 @@ const VerifyOTPStep = ({ onSuccess, registrationData, onBack }) => {
   const [resending, setResending] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [otpSendCount, setOtpSendCount] = useState(1); // already sent once to get here
   const inputRefs = useRef([]);
 
   useEffect(() => {
@@ -196,10 +197,11 @@ const VerifyOTPStep = ({ onSuccess, registrationData, onBack }) => {
   };
 
   const handleResend = async () => {
-    if (!canResend) return;
+    if (!canResend || otpSendCount >= 3) return;
     setResending(true);
     try {
       await authAPI.resendOTP({ email: registrationData.email });
+      setOtpSendCount((c) => c + 1);
       toast.success('New OTP sent! 📧');
       setOtp(['', '', '', '', '', '']);
       setCanResend(false);
@@ -261,9 +263,11 @@ const VerifyOTPStep = ({ onSuccess, registrationData, onBack }) => {
 
         {/* Resend */}
         <div className="otp-resend">
-          {!canResend ? (
+          {otpSendCount >= 3 ? (
+            <p className="otp-limit">OTP send limit reached (3/3). Please try again later.</p>
+          ) : !canResend ? (
             <p className="otp-countdown">
-              Resend code in <strong>{countdown}s</strong>
+              Resend code in <strong>{countdown}s</strong> ({otpSendCount}/3)
             </p>
           ) : (
             <button
@@ -273,7 +277,7 @@ const VerifyOTPStep = ({ onSuccess, registrationData, onBack }) => {
               disabled={resending}
             >
               {resending ? <span className="auth-btn-loader small" /> : <FiRefreshCw />}
-              Resend Code
+              Resend Code ({otpSendCount}/3)
             </button>
           )}
         </div>
@@ -483,13 +487,18 @@ const SetPasswordStep = ({ registrationData, otpCode, onBack }) => {
 // ─── Main Register Page ──────────────────────────────────────────────────────
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  const [currentStep, setCurrentStep] = useState(1);
+  // If navigated from AuthModal with OTP already sent, start at step 2
+  const fromModal = location.state;
+  const [currentStep, setCurrentStep] = useState(fromModal?.step || 1);
   const [mounted, setMounted] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  const [registrationData, setRegistrationData] = useState({ name: '', email: '' });
+  const [registrationData, setRegistrationData] = useState(
+    fromModal?.registrationData || { name: '', email: '' }
+  );
 
   useEffect(() => {
     setMounted(true);
